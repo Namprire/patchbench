@@ -1,0 +1,4 @@
+import * as ToggleGroupPrimitive from "@radix-ui/react-toggle-group";
+import { cn } from "../../lib/utils";
+export const ToggleGroup = ({ className, ...props }: React.ComponentPropsWithoutRef<typeof ToggleGroupPrimitive.Root>) => <ToggleGroupPrimitive.Root className={cn("inline-flex rounded-none border border-edge bg-inset p-0.5", className)} {...props} />;
+export const ToggleGroupItem = ({ className, ...props }: React.ComponentPropsWithoutRef<typeof ToggleGroupPrimitive.Item>) => <ToggleGroupPrimitive.Item className={cn("relative h-10 min-w-11 rounded-none border-r border-edge-subtle px-2.5 t-label-xs text-ink-muted outline-none transition-[background-color,color,box-shadow] duration-2 last:border-r-0 hover:bg-hover data-[state=on]:bg-surface data-[state=on]:text-ink data-[state=on]:shadow-[inset_0_-2px_0_hsl(var(--accent))] focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand md:h-7 md:min-w-0", className)} {...props} />;

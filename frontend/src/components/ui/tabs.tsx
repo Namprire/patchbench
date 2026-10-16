@@ -1,0 +1,9 @@
+import * as TabsPrimitive from "@radix-ui/react-tabs";
+import { cn } from "../../lib/utils";
+export const Tabs = ({ className, ...props }: React.ComponentPropsWithoutRef<typeof TabsPrimitive.Root>) => <TabsPrimitive.Root className={cn("min-w-0 max-w-full", className)} {...props} />;
+type TabsTier = "primary" | "secondary";
+type TabsListProps = React.ComponentPropsWithoutRef<typeof TabsPrimitive.List> & { variant?: TabsTier };
+type TabsTriggerProps = React.ComponentPropsWithoutRef<typeof TabsPrimitive.Trigger> & { variant?: TabsTier };
+export const TabsList = ({ className, variant = "primary", ...props }: TabsListProps) => <TabsPrimitive.List className={cn("scroll-mask max-w-full items-center overflow-x-auto rounded-none [scrollbar-width:none]", variant === "primary" ? "flex h-11 w-full gap-0 border-b border-edge md:h-9" : "inline-flex h-11 gap-2 md:h-7", className)} {...props} />;
+export const TabsTrigger = ({ className, variant = "primary", ...props }: TabsTriggerProps) => <TabsPrimitive.Trigger className={cn("relative inline-flex h-11 shrink-0 items-center justify-center rounded-none text-ink-muted transition-colors duration-2 hover:bg-hover hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand md:h-auto", variant === "primary" ? "px-3 t-label after:absolute after:inset-x-0 after:bottom-[-1px] after:h-0.5 after:bg-transparent data-[state=active]:bg-chosen data-[state=active]:text-ink data-[state=active]:after:bg-brand md:h-9" : "px-1 t-label-xs underline-offset-4 data-[state=active]:text-ink data-[state=active]:underline md:h-7", className)} {...props} />;
+export const TabsContent = ({ className, ...props }: React.ComponentPropsWithoutRef<typeof TabsPrimitive.Content>) => <TabsPrimitive.Content className={cn("pt-5 focus-visible:outline-none", className)} {...props} />;

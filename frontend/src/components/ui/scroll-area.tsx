@@ -1,0 +1,3 @@
+import * as ScrollAreaPrimitive from "@radix-ui/react-scroll-area";
+import { cn } from "../../lib/utils";
+export const ScrollArea = ({ className, children, ...props }: React.ComponentPropsWithoutRef<typeof ScrollAreaPrimitive.Root>) => <ScrollAreaPrimitive.Root className={cn("relative overflow-hidden", className)} {...props}><ScrollAreaPrimitive.Viewport className="h-full w-full">{children}</ScrollAreaPrimitive.Viewport><ScrollAreaPrimitive.Scrollbar orientation="vertical" className="flex w-2 p-px"><ScrollAreaPrimitive.Thumb className="relative flex-1 rounded-none bg-edge hover:bg-edge-strong" /></ScrollAreaPrimitive.Scrollbar><ScrollAreaPrimitive.Corner /></ScrollAreaPrimitive.Root>;

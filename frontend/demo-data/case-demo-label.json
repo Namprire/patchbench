@@ -1,0 +1,37 @@
+{
+  "allowed_operations": [
+    "validate-case",
+    "run",
+    "evaluate-patch"
+  ],
+  "base_commit": "34a307c1978a23e8bd7dc3587cddb65bfaca9798",
+  "case_id": "demo-label",
+  "case_type": "coding",
+  "draft": false,
+  "evaluation": {
+    "setup_command_count": 0,
+    "test_command": "python -B check_label.py",
+    "timeout_seconds": null,
+    "workdir": null
+  },
+  "fix_commit": "06f9a63d30891842d3a511d2154ac6747f2aca28",
+  "gold_files_changed": [
+    "label.py"
+  ],
+  "human_reference_patch": null,
+  "issue_text": "# Synthetic demo: word labels\n\nMake label(words) join the supplied words with a hyphen. An empty list must produce an empty string.\n",
+  "issue_title": "Synthetic demo: word labels",
+  "last_run_at": "2000-01-01T00:00:00+00:00",
+  "repository": "source",
+  "run_count": 2,
+  "run_ids": [
+    "demo-dummy",
+    "demo-gold"
+  ],
+  "safe_provenance": {
+    "research_case": false,
+    "source": "invented-synthetic-demo"
+  },
+  "schema_version": 1,
+  "validation_status": true
+}

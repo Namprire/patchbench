@@ -1,0 +1,751 @@
+{
+  "files": [
+    {
+      "path": ".dockerignore",
+      "sha256": "7511b56477ea78571ee31574260b1e5c883f8a63ff3c135d6cfa89b18727b78e"
+    },
+    {
+      "path": ".gitignore",
+      "sha256": "ac229bde2e228c5496174f50288a59b03e238d900951ec4dd103dc2e100773b7"
+    },
+    {
+      "path": "PUBLICATION.md",
+      "sha256": "179c9057d2a0dd581381a82789a248741cd17ef1d7a3bda7ff18b06b388b48ec"
+    },
+    {
+      "path": "README.md",
+      "sha256": "18737a1958a6b5a05b67976410d4b390a1f9ded71727a258f75e81de6804b428"
+    },
+    {
+      "path": "agents/mirror-rucio-qwen-v1.yaml",
+      "sha256": "638f7dd795e3abf7c3142895ac715210ab2a1953026ce036a6c9fe3192e0f2fa"
+    },
+    {
+      "path": "agents/targeted-testgen-rucio-qwen-v1.yaml",
+      "sha256": "dc69a433c5398146f2a262e4e68fedd6aa7471458cd7c1778aff5ffa2e8c8a1d"
+    },
+    {
+      "path": "frontend/.dockerignore",
+      "sha256": "7511b56477ea78571ee31574260b1e5c883f8a63ff3c135d6cfa89b18727b78e"
+    },
+    {
+      "path": "frontend/Dockerfile",
+      "sha256": "aa9e317cb7f971612d560cffae8a714ebaea177002f805b4009f833c917b7821"
+    },
+    {
+      "path": "frontend/demo-data/case-demo-label.json",
+      "sha256": "8fdc3604c3ec248e53c562803ff21180ff6fe4832cce3c78b34bd7b89ce6a29e"
+    },
+    {
+      "path": "frontend/demo-data/dashboard.json",
+      "sha256": "4c5ce4a15048eda2cb97aa03415854a9f5b1669bff83859d5187fa8fb779fd6a"
+    },
+    {
+      "path": "frontend/demo-data/manifest.json",
+      "sha256": "1a1ef8d6767493e32bcac19a427ec29d122323e135d13f1af891613c0787ebbf"
+    },
+    {
+      "path": "frontend/demo-data/run-demo-dummy.json",
+      "sha256": "451bd1fbf0f0ee54da4255667d33c92bb6be1f40042ef87fd4c6f76baca9af42"
+    },
+    {
+      "path": "frontend/demo-data/run-demo-gold.json",
+      "sha256": "1393597288cc709c55e90b032bc772e0cfc9f0ba2af6d8a48d418fd61d5e897a"
+    },
+    {
+      "path": "frontend/eslint.config.js",
+      "sha256": "827bcae4c646a463bda48b79016d4c4c9e0931e6aacb4f659ff8887ffa6ef03e"
+    },
+    {
+      "path": "frontend/index.html",
+      "sha256": "354fe35e900a3f3a3a60a36fcf995d2627c879333575265593b20dd03af4e21b"
+    },
+    {
+      "path": "frontend/nginx.conf",
+      "sha256": "e2922abdab54b64eeeb2b07da8428bbb826a014bdfe680de616b5cfc16a1e544"
+    },
+    {
+      "path": "frontend/package-lock.json",
+      "sha256": "fa522535606e6eb2e27e72320a596559ab8c9ceb67067caeff56ac73c06abe1c"
+    },
+    {
+      "path": "frontend/package.json",
+      "sha256": "040cd53174a98e307be663033f67783871cd96560064b89095215c9c587023f7"
+    },
+    {
+      "path": "frontend/postcss.config.js",
+      "sha256": "a1a188221f064d964dd9958c3d48b0c23252fabbeb6099d95ee8e15c764718b0"
+    },
+    {
+      "path": "frontend/scripts/export-dashboard.mjs",
+      "sha256": "2b606dbad7789d462d370dc94e43ec99607a9f158ef2d83366c9f638d68ac00a"
+    },
+    {
+      "path": "frontend/src/App.tsx",
+      "sha256": "86a4af0146fe23ed58dcb6342b17f4de05772010e4073e227b28541ac12e444a"
+    },
+    {
+      "path": "frontend/src/components/patchbench/app-shell.tsx",
+      "sha256": "2bca0670c9f71a193739e0b74cd2f572da68347f8f1a41d5102d827f07abb28e"
+    },
+    {
+      "path": "frontend/src/components/patchbench/artifact-tabs.tsx",
+      "sha256": "32392f7fa4e825c145c523d3732f363b27d39966d858d3b62d8ca24126ce1dd9"
+    },
+    {
+      "path": "frontend/src/components/patchbench/code-viewer.tsx",
+      "sha256": "c7f8ff315f8d2865ed352d9181dbef8bb023372da8d656085154cf8127e0da56"
+    },
+    {
+      "path": "frontend/src/components/patchbench/compare-tray.tsx",
+      "sha256": "8c199e9456cfffa2b47f3060787fff24a43962fdadb173a0c87db2c3f1ab6304"
+    },
+    {
+      "path": "frontend/src/components/patchbench/console/collapsible-json.tsx",
+      "sha256": "c411d97cbcc11fb524dd5c9b511ae2eb40ee2ff1c78ab405638ab354d6091f94"
+    },
+    {
+      "path": "frontend/src/components/patchbench/console/console-line.tsx",
+      "sha256": "cd462b30521d49756fefaf3a921eab0eff8f08e364c0ffba03b87719fd265a6b"
+    },
+    {
+      "path": "frontend/src/components/patchbench/console/console-lines.ts",
+      "sha256": "83c57255a7e906a9d963233dde5a4891e1e00051c51d329ab7a89bc0f665ec2f"
+    },
+    {
+      "path": "frontend/src/components/patchbench/console/execution-console.tsx",
+      "sha256": "76f0e2e1a9a0843d7b4b517ec8a0a7fea4018988fdf0a50c57f3793e535c0be8"
+    },
+    {
+      "path": "frontend/src/components/patchbench/data-freshness.tsx",
+      "sha256": "6415adca8bf4605b27671612a68b1c76308946b771bdab728f035ec071c6c7df"
+    },
+    {
+      "path": "frontend/src/components/patchbench/empty-state.tsx",
+      "sha256": "696300c5b28a261b1db84c109fcc76960059745a50ddc36fef7cfff9e8be2eaa"
+    },
+    {
+      "path": "frontend/src/components/patchbench/metric-card.tsx",
+      "sha256": "b99ea7abceec4b2e3cf9778d8ff3cb7e4b175d850e6eaf10acab726e2466c051"
+    },
+    {
+      "path": "frontend/src/components/patchbench/metric-cluster.tsx",
+      "sha256": "a2de4d8552502faf06f8dbb1545d59ff02baece9bd9419e8587bcef11cdd7dc9"
+    },
+    {
+      "path": "frontend/src/components/patchbench/patch-comparison-card.tsx",
+      "sha256": "4bc803ae6b6b9e3123ddb05d0f633588657f55a87adc57bac9e7a8601b3f7f82"
+    },
+    {
+      "path": "frontend/src/components/patchbench/patchbench-logo.tsx",
+      "sha256": "8577bab75bb6455f73c117015a5058c5dc9845213083d110fb61fbd70786fe3f"
+    },
+    {
+      "path": "frontend/src/components/patchbench/pipeline-band.tsx",
+      "sha256": "c63dd35210355da2eb8b5ed99b178d40d6832b4eb76cc48796394646bd65cacb"
+    },
+    {
+      "path": "frontend/src/components/patchbench/run-filters.tsx",
+      "sha256": "31f69068f27404b34a8a521fe1c1208318671d203941aaadba616cd48e959b3a"
+    },
+    {
+      "path": "frontend/src/components/patchbench/run-table.tsx",
+      "sha256": "ec5c4c54976c4951df0c4c49df911ca2190f49c61b3016759bc9cb30885d56e7"
+    },
+    {
+      "path": "frontend/src/components/patchbench/run-timeline.tsx",
+      "sha256": "6374d4d41d88927e37e6a836bba2255e4135a644686cbf4b48469fd8cfdb0731"
+    },
+    {
+      "path": "frontend/src/components/patchbench/status-badges.tsx",
+      "sha256": "64fea147eaf54d65d06aa6af28ffe354d1880026c8f3a76768f91f286bd9e918"
+    },
+    {
+      "path": "frontend/src/components/patchbench/theme-toggle.tsx",
+      "sha256": "004b09512f9c3cabb841177545f7cf1990b9a4b6075c3f86b8d1f30d83cafad9"
+    },
+    {
+      "path": "frontend/src/components/patchbench/token-usage-card.tsx",
+      "sha256": "0af5901ea58f57b36b32252f267739a2090fcd43d9d844cd24ae8d9c0b522d1c"
+    },
+    {
+      "path": "frontend/src/components/patchbench/workflow/build-node.tsx",
+      "sha256": "ad4a5a2e26002e3b5ce92cd5aa5d49d6e1097491c3dbac83acc0814407b700ad"
+    },
+    {
+      "path": "frontend/src/components/patchbench/workflow/build-workflow.tsx",
+      "sha256": "9b025555f416ec0690fe92dc8b2bc5606e0f121816dd70b8498bde8daedbbc4a"
+    },
+    {
+      "path": "frontend/src/components/patchbench/workflow/react-flow-ui.tsx",
+      "sha256": "397e3cfe7d31030577a6b82d1a98237de9103f122b03a3c152b72b27ea725c9b"
+    },
+    {
+      "path": "frontend/src/components/patchbench/workflow/run-drawer.tsx",
+      "sha256": "2b1e6e72a75a25bbe60cd806e5d0ec5a43ad4a50593af498099aa3bc9b13a08e"
+    },
+    {
+      "path": "frontend/src/components/patchbench/workflow/stage-strip.tsx",
+      "sha256": "079c8630869b26171bbcd1fc372ebf343d7de9009958c7933cce5962c8f9292e"
+    },
+    {
+      "path": "frontend/src/components/patchbench/workflow/workflow-canvas.tsx",
+      "sha256": "dd2baad49d0d1dd91b1863a960888a94122b6d971d5fdabbb64b6b7bd7097ab6"
+    },
+    {
+      "path": "frontend/src/components/patchbench/workflow/workflow-diagnostics.tsx",
+      "sha256": "6105356e569ebb408c2e38a520f2c6275808f1294ea9a8db65058f4cc042532c"
+    },
+    {
+      "path": "frontend/src/components/patchbench/workflow/workflow-edge.tsx",
+      "sha256": "374d0cdd5e362ea87627a46030fc1d72f5a64fab8d4881f77aa2cd75264e11c7"
+    },
+    {
+      "path": "frontend/src/components/patchbench/workflow/workflow-error-boundary.tsx",
+      "sha256": "5198ff691254aa3d6e984bff14d50f0c61097db286dbcc595a85ccb74c081fe9"
+    },
+    {
+      "path": "frontend/src/components/patchbench/workflow/workflow-explorer.tsx",
+      "sha256": "27ea23ce35cb6b7a0b388cd866dd31db110f0e15ae00a643ea09b7872d952ac5"
+    },
+    {
+      "path": "frontend/src/components/patchbench/workflow/workflow-fallback.tsx",
+      "sha256": "b0494367618443683fb19771536b5e85901c9c3523c6de53e9a78decccfacd49"
+    },
+    {
+      "path": "frontend/src/components/patchbench/workflow/workflow-health-summary.tsx",
+      "sha256": "f49dbc4f9a19ee77ce16462f085f807013b6bfbdcb1a89b8ad3e9bd3b763db03"
+    },
+    {
+      "path": "frontend/src/components/patchbench/workflow/workflow-inspector.tsx",
+      "sha256": "d9e8111e11a44d4101e4c14c2e113154cf4ad83383ae6eeafc6ef5feba4dd8b8"
+    },
+    {
+      "path": "frontend/src/components/patchbench/workflow/workflow-layout.ts",
+      "sha256": "601811aa2c3e8620d08b614803923c65a32e027ffd962c75632a6f0b3ab88dd6"
+    },
+    {
+      "path": "frontend/src/components/patchbench/workflow/workflow-legend.tsx",
+      "sha256": "ef060588021e637ce84c0487e281bfe9b5c40c643c9a4b9ccf7a8bb59727d701"
+    },
+    {
+      "path": "frontend/src/components/patchbench/workflow/workflow-node.tsx",
+      "sha256": "ce23dafa2ab03e1b02ea40c6251d1764190d6f75bbb82067ca5755f8a3ba4421"
+    },
+    {
+      "path": "frontend/src/components/patchbench/workflow/workflow-preview.tsx",
+      "sha256": "84179c16beba7aba5e75452bade542d464e075f0d7333fc68b9d6e2c13d682b5"
+    },
+    {
+      "path": "frontend/src/components/patchbench/workflow/workflow-service.ts",
+      "sha256": "45be0daef0ef99d6730c8ac8cf13a36d316efd54cca7b6d15f12a80df1c66c23"
+    },
+    {
+      "path": "frontend/src/components/patchbench/workflow/workflow-status.tsx",
+      "sha256": "ca837832eb14ecddfcfc62debeda3c3d62b6d24cca6313e7a78d522861b8b929"
+    },
+    {
+      "path": "frontend/src/components/patchbench/workflow/workflow-toolbar.tsx",
+      "sha256": "b48b0f2d10aa5efa24de9c2275b8f9a23e2bf049821c5a01252c3cbda9ffcc97"
+    },
+    {
+      "path": "frontend/src/components/ui/alert.tsx",
+      "sha256": "82ba685f07699db300ed9e6d23b1f4f73508faa6b99f576d065e96be7e440952"
+    },
+    {
+      "path": "frontend/src/components/ui/badge.tsx",
+      "sha256": "0db8e5c311fc289238880d9735060fbd1c8d7c56e6b9f33164760eb3b411f57a"
+    },
+    {
+      "path": "frontend/src/components/ui/button.tsx",
+      "sha256": "8afccb4eaf427fc7d3efee4642380e862d4ec3fbe9b6f882d18ff3ed805dc4b0"
+    },
+    {
+      "path": "frontend/src/components/ui/card.tsx",
+      "sha256": "ef486f10339e05338f86d23900cde081eea20f6f11ba5ad39025c9aa322f0373"
+    },
+    {
+      "path": "frontend/src/components/ui/checkbox.tsx",
+      "sha256": "6848745a1eafad4361d44b25a46f7e599556227a5fba278164fca72de6aae550"
+    },
+    {
+      "path": "frontend/src/components/ui/collapsible.tsx",
+      "sha256": "6df866e911893695cd052d088a796338541f5acea4637c19d67922610ee8c1a4"
+    },
+    {
+      "path": "frontend/src/components/ui/command.tsx",
+      "sha256": "15fc5b2a6c5efe76000cee2f753a357cfbb59bcc98a400d9077fe1e6a6f0b479"
+    },
+    {
+      "path": "frontend/src/components/ui/dialog.tsx",
+      "sha256": "1e42d4043d067b46ddd1652b685669a0be6eb7113e2c87aa9d9f4d8c8009d88a"
+    },
+    {
+      "path": "frontend/src/components/ui/dropdown-menu.tsx",
+      "sha256": "e7c7e2425602c373e706a32d35659a653bfb6f7e9fe8aba41e62a275271bf102"
+    },
+    {
+      "path": "frontend/src/components/ui/input.tsx",
+      "sha256": "c65b3ad1dee1c0b7c478dcd394cb9106b848e76069bdf653df5aea9f750df1c0"
+    },
+    {
+      "path": "frontend/src/components/ui/popover.tsx",
+      "sha256": "e6d1909b56da4ce70b3e08939400ab84ba3cd83da789e029a6d6f33a56edb4a7"
+    },
+    {
+      "path": "frontend/src/components/ui/progress.tsx",
+      "sha256": "95313a458384bc1fba034e703557a9e6de1b8963a1415636ccb093e7c6d8ed5c"
+    },
+    {
+      "path": "frontend/src/components/ui/scroll-area.tsx",
+      "sha256": "1afb3ca8694e2e0318e74b9225e1f41af9873cd999b55c364a7db2a6be9b40d9"
+    },
+    {
+      "path": "frontend/src/components/ui/select.tsx",
+      "sha256": "0e1c22eda0a4641bb5ee862c0aaf6776cda8f276f2963465d0ba6dd0a0a4ffd4"
+    },
+    {
+      "path": "frontend/src/components/ui/separator.tsx",
+      "sha256": "4a51710bb9fffe18f7d573c5efb1b99c6e12602993b8a563beead38d50cb9798"
+    },
+    {
+      "path": "frontend/src/components/ui/sheet.tsx",
+      "sha256": "538c67f331cf4a7b8c16eb22163a2aa229be0cecdb76e8e027691c720c0cf085"
+    },
+    {
+      "path": "frontend/src/components/ui/skeleton.tsx",
+      "sha256": "bf103cb97615a1b0282ec026f62c02f2864a30d50b02ede225bcde7a64f778a5"
+    },
+    {
+      "path": "frontend/src/components/ui/sonner.tsx",
+      "sha256": "d3209cfcd5c87a10c880c2a57d5fd37a21b886cc9a19909aafdf91a062b2b32a"
+    },
+    {
+      "path": "frontend/src/components/ui/table.tsx",
+      "sha256": "26b8a7b879c62aa3c0da4179d92ec87c9e4680440ae7bd65e99da38ace968ca4"
+    },
+    {
+      "path": "frontend/src/components/ui/tabs.tsx",
+      "sha256": "6e0b736060bf732e7fc2bfa1f1a5e6a9971fed46931516ec8af52a3fbadcbb66"
+    },
+    {
+      "path": "frontend/src/components/ui/textarea.tsx",
+      "sha256": "6c643d1f06ea6cce24c6a41eac2e8c108f6ac5a7c70aee207452e0984f90ed28"
+    },
+    {
+      "path": "frontend/src/components/ui/toggle-group.tsx",
+      "sha256": "b1af1dacad0f58b40a4d4ab3e447c9690b0a3f2f9125bd1f553061dc42617cd8"
+    },
+    {
+      "path": "frontend/src/components/ui/tooltip.tsx",
+      "sha256": "5d93c38085592445a077d84f0277d6861ff9c8a243ce91410bc7e6a498ba746f"
+    },
+    {
+      "path": "frontend/src/data/dashboard.tsx",
+      "sha256": "d2475188b705983e04a91791727c9d07efe781a2aeee08f7282282d7c656974c"
+    },
+    {
+      "path": "frontend/src/index.css",
+      "sha256": "aa5b045e788d41d0e738a7025258ad4ce75136516f3c2d8090dacae627a0c22d"
+    },
+    {
+      "path": "frontend/src/lib/operation-service.ts",
+      "sha256": "dd38b5da18e11e338901da9be7686fcfa5218dd9eaf71029cc5fb83bec326a77"
+    },
+    {
+      "path": "frontend/src/lib/run-category.ts",
+      "sha256": "563566029826ec4bd1a7594382dab4a0cd59408e52788f47b92e30dca3c6dcf8"
+    },
+    {
+      "path": "frontend/src/lib/use-viewport-tier.ts",
+      "sha256": "3e5fdf7b62930728996be39493ded385b4a155d7e90e4f64f4859194fb6259c9"
+    },
+    {
+      "path": "frontend/src/lib/utils.ts",
+      "sha256": "b754503aad5e711076c37366912e259a9452a9bfc4b2ddea49a85830f145c082"
+    },
+    {
+      "path": "frontend/src/lib/workflow-config.ts",
+      "sha256": "2c93a118c3f3a13c1bde712bc9e9d3106bd8c4a417c3dfa76f6d604b6a92e67a"
+    },
+    {
+      "path": "frontend/src/main.tsx",
+      "sha256": "17126885be34c1908f9d6656fab8b665a8f2431b02148283a6c436a204fb190d"
+    },
+    {
+      "path": "frontend/src/pages/cases-page.tsx",
+      "sha256": "e19a1e9f77b559f282d456b57b0719e6ca607c64e92dac9efdfa913d01d4fac2"
+    },
+    {
+      "path": "frontend/src/pages/command-builder-page.tsx",
+      "sha256": "61837b00c54bd140672cd980df1e426ef5b49aaf043a1a80b3e94fa0641945f1"
+    },
+    {
+      "path": "frontend/src/pages/compare-page.tsx",
+      "sha256": "6897d339a86204615634015ff4692262078b1e38cf4a30480797ecc1bea2dc21"
+    },
+    {
+      "path": "frontend/src/pages/not-found-page.tsx",
+      "sha256": "51bf4bbc6962a33db99056c6efd8f932efbe256fb87782b77316ee4ec9e65227"
+    },
+    {
+      "path": "frontend/src/pages/overview-page.tsx",
+      "sha256": "03169596d671cc6c5ff7fb9d117ada0372e9c1a707327da9bf93d54f8f629ce3"
+    },
+    {
+      "path": "frontend/src/pages/page-state.tsx",
+      "sha256": "9f6b62acbab237a9a9693d8221cf183db1a5b5406e3c96c585c68acb0ccad790"
+    },
+    {
+      "path": "frontend/src/pages/run-detail-page.tsx",
+      "sha256": "093f4abc597662a09cd2e664c977f322ec0b35597c37fde0827f5949a8d68e1c"
+    },
+    {
+      "path": "frontend/src/pages/runs-page.tsx",
+      "sha256": "eadbc46496bfa813d588d8d214a5d50a0bb7c5fb4bb33441e77694153102d484"
+    },
+    {
+      "path": "frontend/src/pages/tools-page.tsx",
+      "sha256": "b05a1aea8802dca4a538cc4e144764346179812e6b44d8c9079bc7f37d3f0d55"
+    },
+    {
+      "path": "frontend/src/pages/workflow-page.tsx",
+      "sha256": "db62973652e67929d16a6fb245faa4b87f1ebc6c01c405f6a86e0c336946e6be"
+    },
+    {
+      "path": "frontend/src/test/app.test.tsx",
+      "sha256": "e27d8671cfcff81f7d623acae7b545788210ca6d4bb8282aa168bccfefd1f409"
+    },
+    {
+      "path": "frontend/src/test/console-lines.test.ts",
+      "sha256": "2080305a21f37c538f3e7e6c381929c4fd59e81a7197e9194e4aede2f9f8750a"
+    },
+    {
+      "path": "frontend/src/test/fixtures.ts",
+      "sha256": "3c588cbf1cee29e38b9fd55c9ee3f5692a9a7521cf4b8f2538cf6a08ed453f99"
+    },
+    {
+      "path": "frontend/src/test/setup.ts",
+      "sha256": "03d187a774b2deb6db9efc164e709acdb4e607eddc4e48c013508a76b6beaa5a"
+    },
+    {
+      "path": "frontend/src/types/dashboard.ts",
+      "sha256": "4fe26a46b50c4fc31e16c41a3e0aa8df2a06fff41a6de835099e634a451e4275"
+    },
+    {
+      "path": "frontend/src/vite-env.d.ts",
+      "sha256": "65996936fbb042915f7b74a200fcdde7e410f32a669b1ab9597cfaa4b0faddb5"
+    },
+    {
+      "path": "frontend/tailwind.config.js",
+      "sha256": "7fd302de0cb495fe12e0e9b253991a68e777ec213c6af926c917092f2b0d58be"
+    },
+    {
+      "path": "frontend/tsconfig.app.json",
+      "sha256": "b6c0c9cd28b18c660933eba6a379be41a72b5d7559c41642a5618e2812e63dd1"
+    },
+    {
+      "path": "frontend/tsconfig.json",
+      "sha256": "770b4140bbb581e2dfd9ea9946ffc9c75a1d86ba7d2db5f77c83e37cbdf9d808"
+    },
+    {
+      "path": "frontend/tsconfig.node.json",
+      "sha256": "3dc28b63563e20fab0d9f652f3039ed50e6c46bbdec66631a14822e8309b230d"
+    },
+    {
+      "path": "frontend/vite.config.ts",
+      "sha256": "561eb72ccca16d0a260aa073451413650892c57cfae59a3bb6440ffa979cd065"
+    },
+    {
+      "path": "images/claude-code.Containerfile",
+      "sha256": "5469bde7c44678db8d5258011c0f593fd7afb273e422817f13b33df6eff458dc"
+    },
+    {
+      "path": "images/rucio-claude-code.Containerfile",
+      "sha256": "5469bde7c44678db8d5258011c0f593fd7afb273e422817f13b33df6eff458dc"
+    },
+    {
+      "path": "images/rucio-historical-tests.Containerfile",
+      "sha256": "ae7e1f433c49149bb4e3d865dcb521d4bb5df6cf9a1150e45844deafa11b3d2d"
+    },
+    {
+      "path": "images/rucio.Containerfile",
+      "sha256": "c677506c6b7b960ae92519558659f3cce5a3706445937550c27b665e4eb11e68"
+    },
+    {
+      "path": "pyproject.toml",
+      "sha256": "33c482a3d944c0366ec2e94d8fe913a129875d4033b60b55bd463dabc539b36e"
+    },
+    {
+      "path": "repositories/rucio.yaml",
+      "sha256": "053c5e1fd6edab47bb973cd27bf4ef3b2d2c7bf12065229af8d6becd062ba1a9"
+    },
+    {
+      "path": "src/patchbench/__init__.py",
+      "sha256": "e2dfdcaf386b2ee9befa8ca8c14331b63053cd4b56a7ba114c5db67b012f246e"
+    },
+    {
+      "path": "src/patchbench/agents/__init__.py",
+      "sha256": "9fed4a1ef75becdfcd5ce7caf06102a900d644a9716c898899be2a6f4bb4d003"
+    },
+    {
+      "path": "src/patchbench/agents/base.py",
+      "sha256": "e7bad8ea58a26c143823b5b67639f700f657ce3f0ad02820036a67c36be9c0a6"
+    },
+    {
+      "path": "src/patchbench/agents/claude_code.py",
+      "sha256": "3faeb40c83af799c1a546b2ed7d539ea6e3c0d50d6b7df191a123aac79b78fe0"
+    },
+    {
+      "path": "src/patchbench/agents/container_command.py",
+      "sha256": "58ccace6b04fbb85b5c48499525c7ed92dbbc5679decf7b106e5c94c0829c21a"
+    },
+    {
+      "path": "src/patchbench/agents/curation_claude.py",
+      "sha256": "c60039c51524270d412bf9a7202a716f39c85923a71413806bfc864b6bc5b1eb"
+    },
+    {
+      "path": "src/patchbench/agents/dummy.py",
+      "sha256": "949cea8781e3f33c9ac88b4f285e5974f46dfa43197d9db97613ec23a4840641"
+    },
+    {
+      "path": "src/patchbench/agents/gold.py",
+      "sha256": "bb0b908fd2cd9e1bdb87664cce7d08e84a956a506b72a86a4f317fce37c4c6a5"
+    },
+    {
+      "path": "src/patchbench/answer_evaluation.py",
+      "sha256": "61070b47252a45e1379aff273bc07ddef512f5267ea6f1bf64f9d2db8d4db821"
+    },
+    {
+      "path": "src/patchbench/batch.py",
+      "sha256": "d88e3fc18c7086f43655b538bcb268100f8627c4adb2e4934ae7d51ee05f576f"
+    },
+    {
+      "path": "src/patchbench/case.py",
+      "sha256": "fd579484a5eb66c7aa06967d5b0a849670c62ca9d6ee567ba1600ae7a7d0f182"
+    },
+    {
+      "path": "src/patchbench/case_import.py",
+      "sha256": "9327120e1c33e29e43a8df60c269fcfa9458a08cc79e5589547d406263b6dcce"
+    },
+    {
+      "path": "src/patchbench/catalog.py",
+      "sha256": "819c3ff6df199282853ca25d6f37e8cb46bfd7226d7288e7558cc5c190e589c2"
+    },
+    {
+      "path": "src/patchbench/cli.py",
+      "sha256": "ecdca463a1455af7e940eedff4f9fa2037ce395e6884c77fde92b8dddc71d22e"
+    },
+    {
+      "path": "src/patchbench/command_progress.py",
+      "sha256": "9d42d0991d6ed5302fc8591ed8e8299ab97dd8817ae9d25ba3e36e542a404ff7"
+    },
+    {
+      "path": "src/patchbench/commands.py",
+      "sha256": "50a48851e503d39e8fe5b01335ba9d1df7f80c340f8fd109a9aff5b5a9f76041"
+    },
+    {
+      "path": "src/patchbench/containers.py",
+      "sha256": "6b1c7d87f1728cc3db49150bdfd029a220140c8441bd74b0e48fc142c056f596"
+    },
+    {
+      "path": "src/patchbench/curation/__init__.py",
+      "sha256": "8c8693e4143b91bc484e10dd7da902c2d027005b01a92e18c709b4053e78ef56"
+    },
+    {
+      "path": "src/patchbench/curation/models.py",
+      "sha256": "bebd3a7ce264e82e8ffd5446d04a1840295d6ca83a122895d582c75b80510bda"
+    },
+    {
+      "path": "src/patchbench/curation/profiles.py",
+      "sha256": "34b7880b4243f11c8710d407b00a4463bd2bc30ec79320b3587b7d3ac9a78d69"
+    },
+    {
+      "path": "src/patchbench/curation/runtime.py",
+      "sha256": "7e94e23fe6ab86ac4ccc6e0fd9a02112384c592e423213c0e9923d7f13e7fdb6"
+    },
+    {
+      "path": "src/patchbench/curation/snapshot.py",
+      "sha256": "efcf51bcf2a9af00ad255c4ad34419f6cfd915d96eb335762ce73dcbbdb0dc9a"
+    },
+    {
+      "path": "src/patchbench/curation/triage.py",
+      "sha256": "6fa0ff13512d5cde6f27bc0510357ccbf7d516abb7e939f41e2699aea6cd6403"
+    },
+    {
+      "path": "src/patchbench/curation/workflow.py",
+      "sha256": "045ab75ee4939ab81b7437171e351f29237a135ea567b9707add7fff1bbf5209"
+    },
+    {
+      "path": "src/patchbench/dashboard_export.py",
+      "sha256": "d4231660b9bca802c0c5a358983a94e1911931705cf4897d546cc68b13db981a"
+    },
+    {
+      "path": "src/patchbench/demo.py",
+      "sha256": "b2f0bafbbca4d5f7514f3288dfb68e349e66257aefd17839f4681613cbe34285"
+    },
+    {
+      "path": "src/patchbench/discovery.py",
+      "sha256": "0475d132d3885788e5281192da1a31524faf43c75eeacd00d2e37d66f446f86a"
+    },
+    {
+      "path": "src/patchbench/exceptions.py",
+      "sha256": "b653c5575f3ee104ce6c7c5cd82b88cda74daeca056f58e87b0c3d24eab7d4d6"
+    },
+    {
+      "path": "src/patchbench/github_client.py",
+      "sha256": "54b3c6e964babcbfc6ada869285c5a988dc15b74582585efbf70053c5223ef11"
+    },
+    {
+      "path": "src/patchbench/github_ingest.py",
+      "sha256": "54ec04ef9442aeb33eeb45e38b1d333d5cac08d1734bd3ead8aa2fe1ade6dc5b"
+    },
+    {
+      "path": "src/patchbench/gitlab_client.py",
+      "sha256": "8b47b02d8d8f70931069cf0ab7d5e5ff53f48f084dbbb8ed197158413d90cbe2"
+    },
+    {
+      "path": "src/patchbench/gitutils.py",
+      "sha256": "4650b02d3d952a980d25d6e3acf68418ff6f4f0b1ab09d9786f141d0e1937823"
+    },
+    {
+      "path": "src/patchbench/historical_pr_tests.py",
+      "sha256": "a9353f2ee4d8da8c8b0c80fd15aabe976562735edd0fca13283b87088e24b3c0"
+    },
+    {
+      "path": "src/patchbench/ingest.py",
+      "sha256": "074cc84a25856272e3dad3cf4bada5b9095a0508e03628dd19808cd3b6cde03d"
+    },
+    {
+      "path": "src/patchbench/io.py",
+      "sha256": "b3784568fd5746e4bc29615b120d6fc0a069a59496fb60dbb97ebbbe0b909562"
+    },
+    {
+      "path": "src/patchbench/landb_answer_benchmark.py",
+      "sha256": "e1f837524bdaf1dc031c45186dae5d1a15187c8e193e136babe4a4fb59532bc4"
+    },
+    {
+      "path": "src/patchbench/local_landb_mcp_smoke.py",
+      "sha256": "e1f837524bdaf1dc031c45186dae5d1a15187c8e193e136babe4a4fb59532bc4"
+    },
+    {
+      "path": "src/patchbench/mcp.py",
+      "sha256": "dff7e46de9b2132abfb30b65fad5d1d63b3963b690e1978001b1cef2a59e2176"
+    },
+    {
+      "path": "src/patchbench/mirroring/__init__.py",
+      "sha256": "2eee5ee2ee6764e8d1a06596f9353a6a9d07fea37c95f3b08242249ea4700c28"
+    },
+    {
+      "path": "src/patchbench/mirroring/agent.py",
+      "sha256": "0cb3b30dc63c5991ccfb7ca31774d6d9db85cc6c8e91bf7295e5dab918140e13"
+    },
+    {
+      "path": "src/patchbench/mirroring/components.py",
+      "sha256": "b2c7e8a1c0495e8b250cc10830211dd5ceb34b1723db357437eaa9661a881d84"
+    },
+    {
+      "path": "src/patchbench/mirroring/context.py",
+      "sha256": "8133d8005a048bcef82d8f58043aec8650c75633b64b46aab33c54961b4ebaf1"
+    },
+    {
+      "path": "src/patchbench/mirroring/environment.py",
+      "sha256": "3ce6ad8f7e02543f3d59453abe0284860059b0420492371bf34557025f4c0a15"
+    },
+    {
+      "path": "src/patchbench/mirroring/execution.py",
+      "sha256": "f552596e597ea1059c8734470ffe1bcc045924c1afa9864d02522885b4d80ec2"
+    },
+    {
+      "path": "src/patchbench/mirroring/oracle.py",
+      "sha256": "47beefb4cd017250e252bd1d18a542d03acacdf05762435956da01c953986248"
+    },
+    {
+      "path": "src/patchbench/mirroring/patches.py",
+      "sha256": "3f5a355f2b5993e1f04831085be5e367a2c7806665ab8af382ead664ffb29a97"
+    },
+    {
+      "path": "src/patchbench/mirroring/regression.py",
+      "sha256": "d99715429c40bee068fba8914bae3c6062e12d64384bd39fb428f7383e159f5f"
+    },
+    {
+      "path": "src/patchbench/mirroring/reports.py",
+      "sha256": "031b9bf7af6621b08caeb7e48c1a049dc7a2ed37605283be94b839f3e31aebfe"
+    },
+    {
+      "path": "src/patchbench/mirroring/schema.py",
+      "sha256": "974503359e1dbfc82e6b8cacae7e3028c5aa5f683a457beaddb77e612a02004c"
+    },
+    {
+      "path": "src/patchbench/mirroring/validation.py",
+      "sha256": "e6f5e877484de13b2aa0cb98a4c6937096c0805d5d4ebd45500c7ede87a067ec"
+    },
+    {
+      "path": "src/patchbench/mirroring/workflow.py",
+      "sha256": "459a7e63e9b53e747cd2a57756d00465acdb21270f975b33bc55da6d4eed97d3"
+    },
+    {
+      "path": "src/patchbench/models.py",
+      "sha256": "eb79550e7af9ee86bef8df74a7809625c508697c544f71ac4e52ab000f28723f"
+    },
+    {
+      "path": "src/patchbench/operations.py",
+      "sha256": "a33190ae8d4d1e48fe927f4125dbe90ccaa658450705c9783d7922b7a774dd6c"
+    },
+    {
+      "path": "src/patchbench/preparation/__init__.py",
+      "sha256": "6cecccb3ced9c5479d86ebf8cfbcdd1a65cc346639f29562fd258773d5f4cf3d"
+    },
+    {
+      "path": "src/patchbench/preparation/agent.py",
+      "sha256": "731659c33b079e89fedc871d2762648026a86337ac20b2788eb64bf1b95f386b"
+    },
+    {
+      "path": "src/patchbench/preparation/environment.py",
+      "sha256": "f06faffe04f7788e6905ec3fe8810727e45a7685e7c7848cd8b2751152cc01e8"
+    },
+    {
+      "path": "src/patchbench/preparation/evidence.py",
+      "sha256": "d8cf04fc01ecb47e9d4711833a82fa7e94e9dcb0380ceb75aab75149ed9c9738"
+    },
+    {
+      "path": "src/patchbench/preparation/patterns.py",
+      "sha256": "082431f502cfdf8f54cfb438224399f775142ee1b2fc250e35a29f079c58ebc4"
+    },
+    {
+      "path": "src/patchbench/preparation/workflow.py",
+      "sha256": "82b9ed2b1df537a9b7d818d8bccef46a31b1a0ad7f79eb1c23746f9dd0542d6d"
+    },
+    {
+      "path": "src/patchbench/report.py",
+      "sha256": "c8610b1b2f99dac66dbf3395981d47fac85882b2a340e67025c124abdfb943d2"
+    },
+    {
+      "path": "src/patchbench/repositories.py",
+      "sha256": "6ff7faef1721ec6321b454c62deb7110f258598f9eac7c7a758935288ed3322e"
+    },
+    {
+      "path": "src/patchbench/runner.py",
+      "sha256": "21b9f4e06dda101893a45b5051c081549388ad538202d8f0494d6fc59fb9b46b"
+    },
+    {
+      "path": "src/patchbench/server.py",
+      "sha256": "b365b445e773743aa18c626c9e59addb88d77bcc861e5638f32a27061583c0ab"
+    },
+    {
+      "path": "src/patchbench/terminal_output.py",
+      "sha256": "c9a63c43ddbb14d78c51385a39e33b714a49ed113140301eeb246191882c1ba6"
+    },
+    {
+      "path": "tests/test_public_smoke.py",
+      "sha256": "414ffbbc5aa28ca49923bd76b7933674724baf87b18d3f13729317d3593f8d75"
+    },
+    {
+      "path": "uv.lock",
+      "sha256": "1834a49be5f69afb0a6156cbd3a34a054b06b8ef575e74056fcd47ff34af406d"
+    }
+  ],
+  "publication_approved": false,
+  "schema_version": 1,
+  "tree_sha256": "1f888e7a510c13f69f06b0d23691fb3d95b102ef84b2a7a8e718b64f433093f5"
+}

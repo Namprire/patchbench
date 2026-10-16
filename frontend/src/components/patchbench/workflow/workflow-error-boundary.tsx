@@ -1,0 +1,6 @@
+import { Component, type ErrorInfo, type ReactNode } from "react";
+import { AlertTriangle, RotateCcw } from "lucide-react";
+import { Button } from "../../ui/button";
+
+type Props={children:ReactNode;context:string;onRetry?:()=>void}; type State={error:Error|null};
+export class WorkflowErrorBoundary extends Component<Props,State>{state:State={error:null};static getDerivedStateFromError(error:Error){return{error}}componentDidCatch(error:Error,info:ErrorInfo){if(import.meta.env.DEV)console.error("Workflow canvas error",error,info)}componentDidUpdate(previous:Props){if(previous.context!==this.props.context&&this.state.error)this.setState({error:null})}render(){if(!this.state.error)return this.props.children;return <div role="alert" className="flex min-h-[500px] items-center justify-center border border-l-2 border-danger border-l-danger bg-surface p-8 text-center"><div className="max-w-lg"><AlertTriangle className="mx-auto h-8 w-8 text-danger"/><h2 className="mt-4 t-title">This run contains invalid or incomplete workflow data.</h2><p className="mt-2 t-body-sm text-ink-muted">{this.state.error.message}</p><p className="mt-3 t-mono-xs text-ink-subtle">{this.props.context}</p><Button className="mt-5" onClick={()=>{this.setState({error:null});this.props.onRetry?.()}}><RotateCcw className="mr-2 h-4 w-4"/>Retry</Button></div></div>}}

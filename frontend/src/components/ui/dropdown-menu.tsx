@@ -1,0 +1,7 @@
+import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
+import { Check } from "lucide-react";
+import { cn } from "../../lib/utils";
+export const DropdownMenu = DropdownMenuPrimitive.Root; export const DropdownMenuTrigger = DropdownMenuPrimitive.Trigger;
+export const DropdownMenuContent = ({ className, sideOffset = 6, ...props }: React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Content>) => <DropdownMenuPrimitive.Portal><DropdownMenuPrimitive.Content sideOffset={sideOffset} className={cn("z-[70] min-w-44 rounded-none border border-edge-strong bg-surface p-1 text-ink shadow-overlay", className)} {...props} /></DropdownMenuPrimitive.Portal>;
+export const DropdownMenuItem = ({ className, ...props }: React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Item>) => <DropdownMenuPrimitive.Item className={cn("flex h-11 cursor-pointer items-center rounded-none px-2 t-body-sm outline-none focus:bg-hover md:h-7", className)} {...props} />;
+export const DropdownMenuCheckboxItem = ({ className, children, checked, ...props }: React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.CheckboxItem>) => <DropdownMenuPrimitive.CheckboxItem checked={checked} className={cn("relative flex h-11 cursor-pointer items-center rounded-none pl-8 pr-2 t-body-sm outline-none focus:bg-hover md:h-7", className)} {...props}><span className="absolute left-2 text-brand"><DropdownMenuPrimitive.ItemIndicator><Check className="h-3 w-3" /></DropdownMenuPrimitive.ItemIndicator></span>{children}</DropdownMenuPrimitive.CheckboxItem>;

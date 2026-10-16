@@ -1,0 +1,4 @@
+import * as TooltipPrimitive from "@radix-ui/react-tooltip";
+import { cn } from "../../lib/utils";
+export const TooltipProvider = ({ delayDuration = 200, skipDelayDuration = 0, ...props }: React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Provider>) => <TooltipPrimitive.Provider delayDuration={delayDuration} skipDelayDuration={skipDelayDuration} {...props} />; export const Tooltip = TooltipPrimitive.Root; export const TooltipTrigger = TooltipPrimitive.Trigger;
+export const TooltipContent = ({ className, sideOffset = 6, ...props }: React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Content>) => <TooltipPrimitive.Portal><TooltipPrimitive.Content sideOffset={sideOffset} className={cn("z-[100] max-w-72 rounded-none border border-edge-strong bg-invert px-2 py-1 t-body-sm text-invert-foreground shadow-overlay", className)} {...props} /></TooltipPrimitive.Portal>;

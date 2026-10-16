@@ -1,0 +1,9 @@
+schema_version: 1
+name: targeted-testgen-rucio-qwen-v1
+harness: claude-code
+model: qwen3-coder-next
+roles:
+  testgen:
+    prompt_version: testgen-mirror-v1
+    timeout_seconds: 300
+    max_turns: 100

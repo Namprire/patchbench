@@ -1,0 +1,17 @@
+.git
+**/.git
+.env
+.env.*
+.venv
+node_modules
+**/node_modules
+__pycache__
+**/__pycache__
+.pytest_cache
+artifacts
+cases
+drafts
+runs
+benchmark-environments
+frontend/public/data
+frontend/dist

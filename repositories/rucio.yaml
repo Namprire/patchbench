@@ -1,0 +1,60 @@
+schema_version: 1
+id: rucio
+evaluator: patch_tests
+checkout:
+  env: PATCHBENCH_RUCIO_REPO
+  default: ../repos/rucio
+image: patchbench-rucio:unit-v2
+solver_image: patchbench-rucio-claude:tests-v2
+containerfile: images/rucio.Containerfile
+source:
+  type: github
+  github_repo: rucio/rucio
+  git_url: https://github.com/rucio/rucio.git
+historical_pr_tests:
+  image: patchbench-rucio-historical:tests-v2
+benchmark_components:
+  common-unit:
+    path: lib/rucio
+    image: patchbench-rucio:unit-v2
+    external_services_required: false
+    timeout_seconds: 180
+    test_policy:
+      name: rucio-common-offline-v1
+      reason: 'Select pure common utilities before construction. Exclude bittorrent tests whose file_factory imports DB/core infrastructure. Other integration suites require databases, storage or service credentials. New isolated pytest oracles use test_patchbench_*.py.'
+    setup_commands: []
+    # Same command locally: PYTHONPATH=lib:. RUCIO_CLIENT_MODE=1 python ...
+    test_command:
+      - python
+      - -c
+      - "import glob, pytest; raise SystemExit(pytest.main(['tests/test_utils.py', *sorted(glob.glob('tests/test_patchbench_*.py')), '-k', 'not bittorrent', '--junitxml=patchbench-junit.xml', '-q']))"
+  schema-unit:
+    path: lib/rucio
+    source_paths: [lib/rucio/common/schema/]
+    image: patchbench-rucio:unit-v2
+    external_services_required: false
+    timeout_seconds: 180
+    test_policy:
+      name: rucio-schema-offline-v1
+      reason: 'Run the existing generic schema class for schema production changes. Its file_config_mock fixture is local. Exclude the separate permission/DB policy classes before construction; include evaluator-only regression files.'
+    setup_commands: []
+    test_command:
+      - python
+      - -B
+      - -c
+      - "import glob, pytest; raise SystemExit(pytest.main(['tests/test_policy_package.py::TestPolicyPackageGeneric', *sorted(glob.glob('tests/test_patchbench_*.py')), '--junitxml=patchbench-junit.xml', '-q']))"
+  config-unit:
+    path: lib/rucio
+    source_paths: [lib/rucio/common/config.py, lib/rucio/common/exception.py]
+    image: patchbench-rucio:unit-v2
+    external_services_required: false
+    timeout_seconds: 180
+    test_policy:
+      name: rucio-config-offline-v1
+      reason: 'Select the existing configuration and exception tests for these production files before construction. Fixtures are local; evaluator-only regression files are included.'
+    setup_commands: []
+    test_command:
+      - python
+      - -B
+      - -c
+      - "import glob, pytest; raise SystemExit(pytest.main(['tests/rucio/common/test_config.py', 'tests/rucio/common/test_exception.py', *sorted(glob.glob('tests/test_patchbench_*.py')), '--junitxml=patchbench-junit.xml', '-q']))"

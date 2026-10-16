@@ -1,0 +1,4 @@
+import type { WorkflowNodeStatus } from "../../../types/dashboard";
+import { WorkflowStatusLabel, workflowStatus } from "./workflow-status";
+const statuses:WorkflowNodeStatus[]=["running","success","warning","error","skipped","unavailable","queued"];
+export function WorkflowLegend(){return <div className="flex flex-wrap items-center gap-x-5 gap-y-2 border border-edge bg-surface px-3 py-2"><span className="t-label text-ink-subtle">Legend</span>{statuses.map((status)=>{const visual=workflowStatus(status);const Icon=visual.icon;return <span key={status} className="flex items-center gap-1.5"><span aria-hidden="true" className={`flex h-4 w-4 items-center justify-center border ${visual.shell}`}><Icon className="h-2.5 w-2.5"/></span><WorkflowStatusLabel status={status} className="[&>svg]:hidden"/></span>})}</div>}
