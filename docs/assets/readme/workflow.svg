@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1040 310" role="img" aria-labelledby="title desc">
+  <title id="title">PatchBench: from source changes to reproducible coding evaluations</title>
+  <desc id="desc">Acquire changes, construct and validate cases, run a solver on the bug revision and approved issue, and evaluate its patch with separate tests. Reports and the Research Console inspect the evidence.</desc>
+  <rect width="1040" height="310" rx="12" fill="#111820"/>
+  <g font-family="sans-serif" fill="#edf2f4">
+    <text x="30" y="38" font-size="16" font-weight="700">PATCHBENCH / CODING EVALUATION</text>
+    <text x="30" y="63" font-size="13" fill="#a9b6c2">Build your own cases. Freeze the inputs. Keep solving separate from evaluation.</text>
+    <g fill="#1e2a35" stroke="#647788">
+      <rect x="30" y="92" width="168" height="64" rx="4"/>
+      <rect x="233" y="92" width="200" height="64" rx="4"/>
+      <rect x="468" y="92" width="210" height="64" rx="4"/>
+      <rect x="713" y="92" width="297" height="64" rx="4"/>
+    </g>
+    <g font-size="15" font-weight="700" text-anchor="middle">
+      <text x="114" y="119">Acquire changes</text><text x="333" y="119">Construct + validate</text>
+      <text x="573" y="119">Run a coding agent</text><text x="861" y="119">Evaluate + inspect</text>
+    </g>
+    <g font-size="12" fill="#b9c7d1" text-anchor="middle">
+      <text x="114" y="141">Issue / PR / Git history</text><text x="333" y="141">Base FAIL / repaired PASS</text>
+      <text x="573" y="141">Issue + isolated Base checkout</text><text x="861" y="141">Patch / tests / traces / comparisons</text>
+    </g>
+    <g stroke="#76dab0" stroke-width="2" fill="none">
+      <path d="M198 124h29m-7-5 7 5-7 5M433 124h29m-7-5 7 5-7 5M678 124h29m-7-5 7 5-7 5"/>
+      <path d="M333 156v46h529v-40" stroke-dasharray="5 5"/>
+    </g>
+    <text x="445" y="225" fill="#76dab0" font-size="13">Evaluator-only: hidden tests + reference repair</text>
+    <text x="30" y="274" fill="#a9b6c2" font-size="13">Included synthetic examples run locally with Git + Python. No model or container required.</text>
+  </g>
+</svg>

@@ -1,5 +1,5 @@
 {
-  "case_count": 1,
+  "case_count": 3,
   "cases": [
     {
       "allowed_operations": [
@@ -7,23 +7,78 @@
         "run",
         "evaluate-patch"
       ],
-      "base_commit": "34a307c1978a23e8bd7dc3587cddb65bfaca9798",
+      "base_commit": "bbb206ffda963dc5eeddf7d7176ec01baa02154b",
+      "case_id": "demo-config",
+      "case_type": "coding",
+      "draft": false,
+      "evaluation": {
+        "setup_command_count": 0,
+        "test_command": "python -B check_example.py",
+        "timeout_seconds": null,
+        "workdir": null
+      },
+      "fix_commit": "f7ab233de2cbc6bd5aa91985999e20349ec31f45",
+      "gold_files_changed": [
+        "config.py"
+      ],
+      "issue_title": "Synthetic demo: strict worker configuration",
+      "last_run_at": "2000-01-01T00:00:00+00:00",
+      "repository": "demo-config",
+      "run_count": 2,
+      "schema_version": 1,
+      "validation_status": true
+    },
+    {
+      "allowed_operations": [
+        "validate-case",
+        "run",
+        "evaluate-patch"
+      ],
+      "base_commit": "debaf7e943a88fd03273b57d9ff8d0dcf7ed8306",
       "case_id": "demo-label",
       "case_type": "coding",
       "draft": false,
       "evaluation": {
         "setup_command_count": 0,
-        "test_command": "python -B check_label.py",
+        "test_command": "python -B check_example.py",
         "timeout_seconds": null,
         "workdir": null
       },
-      "fix_commit": "06f9a63d30891842d3a511d2154ac6747f2aca28",
+      "fix_commit": "c1c36b58904df367fbdd0a6b0200bcb508a5e4c5",
       "gold_files_changed": [
         "label.py"
       ],
       "issue_title": "Synthetic demo: word labels",
       "last_run_at": "2000-01-01T00:00:00+00:00",
-      "repository": "source",
+      "repository": "demo-label",
+      "run_count": 2,
+      "schema_version": 1,
+      "validation_status": true
+    },
+    {
+      "allowed_operations": [
+        "validate-case",
+        "run",
+        "evaluate-patch"
+      ],
+      "base_commit": "239e8654f3c784b95dd6de4c5d510f40e38f1313",
+      "case_id": "demo-ranges",
+      "case_type": "coding",
+      "draft": false,
+      "evaluation": {
+        "setup_command_count": 0,
+        "test_command": "python -B check_example.py",
+        "timeout_seconds": null,
+        "workdir": null
+      },
+      "fix_commit": "35d177316928433aa451a4909ca0cdd71487b7c9",
+      "gold_files_changed": [
+        "coverage.py",
+        "ranges.py"
+      ],
+      "issue_title": "Synthetic demo: half-open interval coverage",
+      "last_run_at": "2000-01-01T00:00:00+00:00",
+      "repository": "demo-ranges",
       "run_count": 2,
       "schema_version": 1,
       "validation_status": true
@@ -31,8 +86,789 @@
   ],
   "generated_at": "2000-01-01T00:00:00+00:00",
   "includes_gold": false,
-  "run_count": 2,
+  "run_count": 6,
   "runs": [
+    {
+      "activity_observed": false,
+      "actual_model": null,
+      "agent": "dummy",
+      "agent_harness": "dummy",
+      "agent_harness_version": null,
+      "available_relevant_files_count": 0,
+      "cache_read_tokens": null,
+      "case_id": "demo-config",
+      "case_title": "Synthetic demo: strict worker configuration",
+      "case_type": "coding",
+      "configured_max_turns": null,
+      "created_at": "2000-01-01T00:00:00+00:00",
+      "evaluation_skip_reason": null,
+      "evaluation_skipped": false,
+      "event_count": 0,
+      "execution_detail": null,
+      "failure_mode": "no_code_change",
+      "files_changed": [],
+      "first_event_seconds": null,
+      "historical": false,
+      "included_relevant_files_count": 0,
+      "input_tokens": null,
+      "last_event_seconds": null,
+      "lines_added": 0,
+      "lines_removed": 0,
+      "mcp_activity_observed": false,
+      "mcp_condition": "none",
+      "mcp_enabled": false,
+      "mcp_process_started": null,
+      "mcp_profile": null,
+      "mcp_revision": null,
+      "mcp_revision_dirty": null,
+      "mcp_server_name": null,
+      "mcp_servers": [],
+      "mcp_telemetry_available": false,
+      "mcp_tool_call_count": 0,
+      "mcp_tool_error_count": 0,
+      "mcp_tool_success_count": 0,
+      "mcp_tools_discovered": null,
+      "model_source": "not applicable",
+      "output_tokens": null,
+      "partial_patch_captured": false,
+      "patch_applied": false,
+      "patch_captured": false,
+      "patch_comparison": {
+        "agent_files_changed": [],
+        "agent_lines_added": 0,
+        "agent_lines_removed": 0,
+        "exact_file_set_match": false,
+        "file_overlap_count": 0,
+        "file_overlap_jaccard": 0.0,
+        "gold_files_changed": [
+          "config.py"
+        ],
+        "gold_lines_added": 17,
+        "gold_lines_removed": 4,
+        "overlapping_files": []
+      },
+      "prompt_hash": "53eae16b6b28993e84722d441301c0429c5de222b9dc3478ad909220e6e74b02",
+      "prompt_mode": "issue_only",
+      "provider": null,
+      "provider_host": null,
+      "reported_cost_usd": null,
+      "reported_turns": null,
+      "requested_model": null,
+      "resolved": false,
+      "run_config": null,
+      "run_id": "demo-config-dummy",
+      "runtime_seconds": 0,
+      "schema_version": 1,
+      "stop_reason": null,
+      "termination_reason": null,
+      "timeout_seconds": 0,
+      "tool_event_count": 0,
+      "workflow": {
+        "completed_at": "2000-01-01T00:00:00+00:00",
+        "diagnostics": [],
+        "edges": [
+          {
+            "animated": false,
+            "id": "source-to-case",
+            "label": null,
+            "source": "source",
+            "status": "completed",
+            "target": "case"
+          },
+          {
+            "animated": false,
+            "id": "case-to-worktree",
+            "label": null,
+            "source": "case",
+            "status": "completed",
+            "target": "worktree"
+          },
+          {
+            "animated": false,
+            "id": "worktree-to-prompt",
+            "label": null,
+            "source": "worktree",
+            "status": "completed",
+            "target": "prompt"
+          },
+          {
+            "animated": false,
+            "id": "prompt-to-agent",
+            "label": null,
+            "source": "prompt",
+            "status": "completed",
+            "target": "agent"
+          },
+          {
+            "animated": false,
+            "id": "agent-to-tools",
+            "label": null,
+            "source": "agent",
+            "status": "skipped",
+            "target": "tools"
+          },
+          {
+            "animated": false,
+            "id": "tools-to-patch",
+            "label": null,
+            "source": "tools",
+            "status": "skipped",
+            "target": "patch"
+          },
+          {
+            "animated": false,
+            "id": "patch-to-termination",
+            "label": null,
+            "source": "patch",
+            "status": "completed",
+            "target": "termination"
+          },
+          {
+            "animated": false,
+            "id": "termination-to-evaluation",
+            "label": null,
+            "source": "termination",
+            "status": "error",
+            "target": "evaluation"
+          },
+          {
+            "animated": false,
+            "id": "evaluation-to-result",
+            "label": null,
+            "source": "evaluation",
+            "status": "error",
+            "target": "result"
+          }
+        ],
+        "freshness_seconds": 0,
+        "health": "healthy",
+        "health_source": "authoritative",
+        "last_activity_age_seconds": 0,
+        "last_activity_at": "2000-01-01T00:00:00+00:00",
+        "nodes": [
+          {
+            "artifact_refs": [],
+            "completed_at": "2000-01-01T00:00:00+00:00",
+            "diagnostic_codes": [],
+            "duration_seconds": null,
+            "id": "source",
+            "kind": "source",
+            "label": "Case Source / Provenance",
+            "metrics": {
+              "repository": "demo-config"
+            },
+            "started_at": null,
+            "status": "success",
+            "status_reason": "Safe case provenance is available.",
+            "summary": "Issue and merge-request provenance used before the case was frozen."
+          },
+          {
+            "artifact_refs": [
+              "case_metadata"
+            ],
+            "completed_at": "2000-01-01T00:00:00+00:00",
+            "diagnostic_codes": [],
+            "duration_seconds": null,
+            "id": "case",
+            "kind": "case",
+            "label": "Frozen Case",
+            "metrics": {
+              "base_commit": "bbb206ffda96"
+            },
+            "started_at": null,
+            "status": "success",
+            "status_reason": "Frozen metadata loaded.",
+            "summary": "demo-config \u00b7 demo-config"
+          },
+          {
+            "artifact_refs": [],
+            "completed_at": "2000-01-01T00:00:00+00:00",
+            "diagnostic_codes": [],
+            "duration_seconds": null,
+            "id": "worktree",
+            "kind": "worktree",
+            "label": "Solver Worktree",
+            "metrics": {
+              "execution_mode": "host"
+            },
+            "started_at": "2000-01-01T00:00:00+00:00",
+            "status": "success",
+            "status_reason": "Solving checkout evidence is present.",
+            "summary": "Isolated checkout at the case base commit."
+          },
+          {
+            "artifact_refs": [
+              "prompt"
+            ],
+            "completed_at": "2000-01-01T00:00:00+00:00",
+            "diagnostic_codes": [],
+            "duration_seconds": null,
+            "id": "prompt",
+            "kind": "prompt",
+            "label": "Prompt Context",
+            "metrics": {
+              "available_hints": 0,
+              "included_hints": 0,
+              "prompt_mode": "issue_only"
+            },
+            "started_at": "2000-01-01T00:00:00+00:00",
+            "status": "success",
+            "status_reason": "Prompt artifact and hash are consistent.",
+            "summary": "issue_only \u00b7 0 hint(s) included"
+          },
+          {
+            "artifact_refs": [],
+            "completed_at": "2000-01-01T00:00:00+00:00",
+            "diagnostic_codes": [],
+            "duration_seconds": 0,
+            "id": "agent",
+            "kind": "agent",
+            "label": "Agent Harness",
+            "metrics": {
+              "actual_model": null,
+              "agent": "dummy",
+              "api_error_count": 0,
+              "configured_max_turns": null,
+              "first_event_seconds": null,
+              "harness": "dummy",
+              "harness_version": null,
+              "last_event_seconds": null,
+              "permission_denial_count": 0,
+              "provider": null,
+              "provider_host": null,
+              "reported_cost_usd": null,
+              "reported_turns": null,
+              "requested_model": null,
+              "timeout_seconds": 0
+            },
+            "started_at": "2000-01-01T00:00:00+00:00",
+            "status": "success",
+            "status_reason": "Agent execution completed.",
+            "summary": "dummy through dummy"
+          },
+          {
+            "artifact_refs": [],
+            "completed_at": "2000-01-01T00:00:00+00:00",
+            "diagnostic_codes": [],
+            "duration_seconds": null,
+            "id": "tools",
+            "kind": "tools",
+            "label": "Agent Tools",
+            "metrics": {
+              "command_count": 0,
+              "counts": {
+                "Bash": 0,
+                "Edit": 0,
+                "Grep": 0,
+                "Read": 0,
+                "Write": 0,
+                "other": 0
+              },
+              "edit_count": 0,
+              "event_count": 0,
+              "first_event_seconds": null,
+              "last_event_seconds": null,
+              "latest_event": null,
+              "read_search_count": 0,
+              "recent_significant_events": [],
+              "summary": "No structured events",
+              "tool_event_count": 0
+            },
+            "started_at": null,
+            "status": "skipped",
+            "status_reason": "No structured tool activity is available.",
+            "summary": "No structured events"
+          },
+          {
+            "artifact_refs": [],
+            "completed_at": "2000-01-01T00:00:00+00:00",
+            "diagnostic_codes": [],
+            "duration_seconds": null,
+            "id": "patch",
+            "kind": "patch",
+            "label": "Patch Capture",
+            "metrics": {
+              "files_changed": [],
+              "lines_added": 0,
+              "lines_removed": 0,
+              "partial_patch_captured": false,
+              "patch_captured": false
+            },
+            "started_at": null,
+            "status": "skipped",
+            "status_reason": "No patch was produced.",
+            "summary": "0 file(s) \u00b7 +0 / -0"
+          },
+          {
+            "artifact_refs": [],
+            "completed_at": "2000-01-01T00:00:00+00:00",
+            "diagnostic_codes": [],
+            "duration_seconds": null,
+            "id": "termination",
+            "kind": "termination",
+            "label": "Termination",
+            "metrics": {
+              "configured_max_turns": null,
+              "execution_detail": null,
+              "reported_turns": null,
+              "stop_reason": null,
+              "termination_reason": null
+            },
+            "started_at": null,
+            "status": "success",
+            "status_reason": "No authoritative termination reason is available.",
+            "summary": "unknown \u00b7 ? reported turn(s)"
+          },
+          {
+            "artifact_refs": [
+              "test_log"
+            ],
+            "completed_at": "2000-01-01T00:00:00+00:00",
+            "diagnostic_codes": [],
+            "duration_seconds": null,
+            "id": "evaluation",
+            "kind": "evaluation",
+            "label": "Deterministic Evaluation",
+            "metrics": {
+              "evaluation_skip_reason": null,
+              "evaluation_skipped": false,
+              "execution_mode": "host",
+              "f2p_passed": 0,
+              "f2p_total": 0,
+              "failure_mode": "no_code_change",
+              "p2p_passed": 0,
+              "p2p_total": 0,
+              "patch_applied": false,
+              "resolved": false
+            },
+            "started_at": null,
+            "status": "error",
+            "status_reason": "No candidate patch was produced; this is a scientific no-code-change outcome.",
+            "summary": "host \u00b7 no_code_change"
+          },
+          {
+            "artifact_refs": [
+              "prompt",
+              "test_log"
+            ],
+            "completed_at": "2000-01-01T00:00:00+00:00",
+            "diagnostic_codes": [],
+            "duration_seconds": null,
+            "id": "result",
+            "kind": "result",
+            "label": "Result Artifacts",
+            "metrics": {
+              "failure_mode": "no_code_change",
+              "resolved": false,
+              "task_outcome": "unresolved"
+            },
+            "started_at": null,
+            "status": "error",
+            "status_reason": "Scientific outcome: unresolved.",
+            "summary": "unresolved \u00b7 2 safe artifact(s)"
+          }
+        ],
+        "schema_version": 1,
+        "started_at": "2000-01-01T00:00:00+00:00",
+        "task_outcome": "unresolved"
+      }
+    },
+    {
+      "activity_observed": false,
+      "actual_model": null,
+      "agent": "gold",
+      "agent_harness": "gold",
+      "agent_harness_version": null,
+      "available_relevant_files_count": 0,
+      "cache_read_tokens": null,
+      "case_id": "demo-config",
+      "case_title": "Synthetic demo: strict worker configuration",
+      "case_type": "coding",
+      "configured_max_turns": null,
+      "created_at": "2000-01-01T00:00:00+00:00",
+      "evaluation_skip_reason": null,
+      "evaluation_skipped": false,
+      "event_count": 0,
+      "execution_detail": null,
+      "failure_mode": "tests_pass",
+      "files_changed": [
+        "config.py"
+      ],
+      "first_event_seconds": null,
+      "historical": false,
+      "included_relevant_files_count": 0,
+      "input_tokens": null,
+      "last_event_seconds": null,
+      "lines_added": 17,
+      "lines_removed": 4,
+      "mcp_activity_observed": false,
+      "mcp_condition": "none",
+      "mcp_enabled": false,
+      "mcp_process_started": null,
+      "mcp_profile": null,
+      "mcp_revision": null,
+      "mcp_revision_dirty": null,
+      "mcp_server_name": null,
+      "mcp_servers": [],
+      "mcp_telemetry_available": false,
+      "mcp_tool_call_count": 0,
+      "mcp_tool_error_count": 0,
+      "mcp_tool_success_count": 0,
+      "mcp_tools_discovered": null,
+      "model_source": "not applicable; sanity-check agent",
+      "output_tokens": null,
+      "partial_patch_captured": false,
+      "patch_applied": true,
+      "patch_captured": true,
+      "patch_comparison": {
+        "agent_files_changed": [
+          "config.py"
+        ],
+        "agent_lines_added": 17,
+        "agent_lines_removed": 4,
+        "exact_file_set_match": true,
+        "file_overlap_count": 1,
+        "file_overlap_jaccard": 1.0,
+        "gold_files_changed": [
+          "config.py"
+        ],
+        "gold_lines_added": 17,
+        "gold_lines_removed": 4,
+        "overlapping_files": [
+          "config.py"
+        ]
+      },
+      "prompt_hash": "53eae16b6b28993e84722d441301c0429c5de222b9dc3478ad909220e6e74b02",
+      "prompt_mode": "issue_only",
+      "provider": null,
+      "provider_host": null,
+      "reported_cost_usd": null,
+      "reported_turns": null,
+      "requested_model": null,
+      "resolved": true,
+      "run_config": null,
+      "run_id": "demo-config-gold",
+      "runtime_seconds": 0,
+      "schema_version": 1,
+      "stop_reason": null,
+      "termination_reason": null,
+      "timeout_seconds": 0,
+      "tool_event_count": 0,
+      "workflow": {
+        "completed_at": "2000-01-01T00:00:00+00:00",
+        "diagnostics": [],
+        "edges": [
+          {
+            "animated": false,
+            "id": "source-to-case",
+            "label": null,
+            "source": "source",
+            "status": "completed",
+            "target": "case"
+          },
+          {
+            "animated": false,
+            "id": "case-to-worktree",
+            "label": null,
+            "source": "case",
+            "status": "completed",
+            "target": "worktree"
+          },
+          {
+            "animated": false,
+            "id": "worktree-to-prompt",
+            "label": null,
+            "source": "worktree",
+            "status": "completed",
+            "target": "prompt"
+          },
+          {
+            "animated": false,
+            "id": "prompt-to-agent",
+            "label": null,
+            "source": "prompt",
+            "status": "completed",
+            "target": "agent"
+          },
+          {
+            "animated": false,
+            "id": "agent-to-tools",
+            "label": null,
+            "source": "agent",
+            "status": "skipped",
+            "target": "tools"
+          },
+          {
+            "animated": false,
+            "id": "tools-to-patch",
+            "label": null,
+            "source": "tools",
+            "status": "completed",
+            "target": "patch"
+          },
+          {
+            "animated": false,
+            "id": "patch-to-termination",
+            "label": null,
+            "source": "patch",
+            "status": "completed",
+            "target": "termination"
+          },
+          {
+            "animated": false,
+            "id": "termination-to-evaluation",
+            "label": null,
+            "source": "termination",
+            "status": "completed",
+            "target": "evaluation"
+          },
+          {
+            "animated": false,
+            "id": "evaluation-to-result",
+            "label": null,
+            "source": "evaluation",
+            "status": "completed",
+            "target": "result"
+          }
+        ],
+        "freshness_seconds": 0,
+        "health": "healthy",
+        "health_source": "authoritative",
+        "last_activity_age_seconds": 0,
+        "last_activity_at": "2000-01-01T00:00:00+00:00",
+        "nodes": [
+          {
+            "artifact_refs": [],
+            "completed_at": "2000-01-01T00:00:00+00:00",
+            "diagnostic_codes": [],
+            "duration_seconds": null,
+            "id": "source",
+            "kind": "source",
+            "label": "Case Source / Provenance",
+            "metrics": {
+              "repository": "demo-config"
+            },
+            "started_at": null,
+            "status": "success",
+            "status_reason": "Safe case provenance is available.",
+            "summary": "Issue and merge-request provenance used before the case was frozen."
+          },
+          {
+            "artifact_refs": [
+              "case_metadata"
+            ],
+            "completed_at": "2000-01-01T00:00:00+00:00",
+            "diagnostic_codes": [],
+            "duration_seconds": null,
+            "id": "case",
+            "kind": "case",
+            "label": "Frozen Case",
+            "metrics": {
+              "base_commit": "bbb206ffda96"
+            },
+            "started_at": null,
+            "status": "success",
+            "status_reason": "Frozen metadata loaded.",
+            "summary": "demo-config \u00b7 demo-config"
+          },
+          {
+            "artifact_refs": [],
+            "completed_at": "2000-01-01T00:00:00+00:00",
+            "diagnostic_codes": [],
+            "duration_seconds": null,
+            "id": "worktree",
+            "kind": "worktree",
+            "label": "Solver Worktree",
+            "metrics": {
+              "execution_mode": "host"
+            },
+            "started_at": "2000-01-01T00:00:00+00:00",
+            "status": "success",
+            "status_reason": "Solving checkout evidence is present.",
+            "summary": "Isolated checkout at the case base commit."
+          },
+          {
+            "artifact_refs": [
+              "prompt"
+            ],
+            "completed_at": "2000-01-01T00:00:00+00:00",
+            "diagnostic_codes": [],
+            "duration_seconds": null,
+            "id": "prompt",
+            "kind": "prompt",
+            "label": "Prompt Context",
+            "metrics": {
+              "available_hints": 0,
+              "included_hints": 0,
+              "prompt_mode": "issue_only"
+            },
+            "started_at": "2000-01-01T00:00:00+00:00",
+            "status": "success",
+            "status_reason": "Prompt artifact and hash are consistent.",
+            "summary": "issue_only \u00b7 0 hint(s) included"
+          },
+          {
+            "artifact_refs": [],
+            "completed_at": "2000-01-01T00:00:00+00:00",
+            "diagnostic_codes": [],
+            "duration_seconds": 0,
+            "id": "agent",
+            "kind": "agent",
+            "label": "Agent Harness",
+            "metrics": {
+              "actual_model": null,
+              "agent": "gold",
+              "api_error_count": 0,
+              "configured_max_turns": null,
+              "first_event_seconds": null,
+              "harness": "gold",
+              "harness_version": null,
+              "last_event_seconds": null,
+              "permission_denial_count": 0,
+              "provider": null,
+              "provider_host": null,
+              "reported_cost_usd": null,
+              "reported_turns": null,
+              "requested_model": null,
+              "timeout_seconds": 0
+            },
+            "started_at": "2000-01-01T00:00:00+00:00",
+            "status": "success",
+            "status_reason": "Agent execution completed.",
+            "summary": "gold through gold"
+          },
+          {
+            "artifact_refs": [],
+            "completed_at": "2000-01-01T00:00:00+00:00",
+            "diagnostic_codes": [],
+            "duration_seconds": null,
+            "id": "tools",
+            "kind": "tools",
+            "label": "Agent Tools",
+            "metrics": {
+              "command_count": 0,
+              "counts": {
+                "Bash": 0,
+                "Edit": 0,
+                "Grep": 0,
+                "Read": 0,
+                "Write": 0,
+                "other": 0
+              },
+              "edit_count": 0,
+              "event_count": 0,
+              "first_event_seconds": null,
+              "last_event_seconds": null,
+              "latest_event": null,
+              "read_search_count": 0,
+              "recent_significant_events": [],
+              "summary": "No structured events",
+              "tool_event_count": 0
+            },
+            "started_at": null,
+            "status": "skipped",
+            "status_reason": "No structured tool activity is available.",
+            "summary": "No structured events"
+          },
+          {
+            "artifact_refs": [
+              "agent_patch"
+            ],
+            "completed_at": "2000-01-01T00:00:00+00:00",
+            "diagnostic_codes": [],
+            "duration_seconds": null,
+            "id": "patch",
+            "kind": "patch",
+            "label": "Patch Capture",
+            "metrics": {
+              "files_changed": [
+                "config.py"
+              ],
+              "lines_added": 17,
+              "lines_removed": 4,
+              "partial_patch_captured": false,
+              "patch_captured": true
+            },
+            "started_at": null,
+            "status": "success",
+            "status_reason": "Patch captured.",
+            "summary": "1 file(s) \u00b7 +17 / -4"
+          },
+          {
+            "artifact_refs": [],
+            "completed_at": "2000-01-01T00:00:00+00:00",
+            "diagnostic_codes": [],
+            "duration_seconds": null,
+            "id": "termination",
+            "kind": "termination",
+            "label": "Termination",
+            "metrics": {
+              "configured_max_turns": null,
+              "execution_detail": null,
+              "reported_turns": null,
+              "stop_reason": null,
+              "termination_reason": null
+            },
+            "started_at": null,
+            "status": "success",
+            "status_reason": "No authoritative termination reason is available.",
+            "summary": "unknown \u00b7 ? reported turn(s)"
+          },
+          {
+            "artifact_refs": [
+              "test_log"
+            ],
+            "completed_at": "2000-01-01T00:00:00+00:00",
+            "diagnostic_codes": [],
+            "duration_seconds": null,
+            "id": "evaluation",
+            "kind": "evaluation",
+            "label": "Deterministic Evaluation",
+            "metrics": {
+              "evaluation_skip_reason": null,
+              "evaluation_skipped": false,
+              "execution_mode": "host",
+              "f2p_passed": 0,
+              "f2p_total": 0,
+              "failure_mode": "tests_pass",
+              "p2p_passed": 0,
+              "p2p_total": 0,
+              "patch_applied": true,
+              "resolved": true
+            },
+            "started_at": null,
+            "status": "success",
+            "status_reason": "The candidate patch applied and deterministic tests passed.",
+            "summary": "host \u00b7 tests_pass"
+          },
+          {
+            "artifact_refs": [
+              "agent_patch",
+              "prompt",
+              "test_log"
+            ],
+            "completed_at": "2000-01-01T00:00:00+00:00",
+            "diagnostic_codes": [],
+            "duration_seconds": null,
+            "id": "result",
+            "kind": "result",
+            "label": "Result Artifacts",
+            "metrics": {
+              "failure_mode": "tests_pass",
+              "resolved": true,
+              "task_outcome": "resolved"
+            },
+            "started_at": null,
+            "status": "success",
+            "status_reason": "Scientific outcome: resolved.",
+            "summary": "resolved \u00b7 3 safe artifact(s)"
+          }
+        ],
+        "schema_version": 1,
+        "started_at": "2000-01-01T00:00:00+00:00",
+        "task_outcome": "resolved"
+      }
+    },
     {
       "activity_observed": false,
       "actual_model": null,
@@ -92,7 +928,7 @@
         "gold_lines_removed": 1,
         "overlapping_files": []
       },
-      "prompt_hash": "ebaf9a80dd4e63fffa43f60983189539461b1fb38a41d8252f79c324cb821192",
+      "prompt_hash": "e16cb615fe88ad0f73d2cdee387fdee2404fc064dba5230e04dd1caefc454b24",
       "prompt_mode": "issue_only",
       "provider": null,
       "provider_host": null,
@@ -200,7 +1036,7 @@
             "kind": "source",
             "label": "Case Source / Provenance",
             "metrics": {
-              "repository": "source"
+              "repository": "demo-label"
             },
             "started_at": null,
             "status": "success",
@@ -218,12 +1054,12 @@
             "kind": "case",
             "label": "Frozen Case",
             "metrics": {
-              "base_commit": "34a307c1978a"
+              "base_commit": "debaf7e943a8"
             },
             "started_at": null,
             "status": "success",
             "status_reason": "Frozen metadata loaded.",
-            "summary": "demo-label \u00b7 source"
+            "summary": "demo-label \u00b7 demo-label"
           },
           {
             "artifact_refs": [],
@@ -483,7 +1319,7 @@
           "label.py"
         ]
       },
-      "prompt_hash": "ebaf9a80dd4e63fffa43f60983189539461b1fb38a41d8252f79c324cb821192",
+      "prompt_hash": "e16cb615fe88ad0f73d2cdee387fdee2404fc064dba5230e04dd1caefc454b24",
       "prompt_mode": "issue_only",
       "provider": null,
       "provider_host": null,
@@ -591,7 +1427,7 @@
             "kind": "source",
             "label": "Case Source / Provenance",
             "metrics": {
-              "repository": "source"
+              "repository": "demo-label"
             },
             "started_at": null,
             "status": "success",
@@ -609,12 +1445,12 @@
             "kind": "case",
             "label": "Frozen Case",
             "metrics": {
-              "base_commit": "34a307c1978a"
+              "base_commit": "debaf7e943a8"
             },
             "started_at": null,
             "status": "success",
             "status_reason": "Frozen metadata loaded.",
-            "summary": "demo-label \u00b7 source"
+            "summary": "demo-label \u00b7 demo-label"
           },
           {
             "artifact_refs": [],
@@ -738,6 +1574,793 @@
             "status": "success",
             "status_reason": "Patch captured.",
             "summary": "1 file(s) \u00b7 +1 / -1"
+          },
+          {
+            "artifact_refs": [],
+            "completed_at": "2000-01-01T00:00:00+00:00",
+            "diagnostic_codes": [],
+            "duration_seconds": null,
+            "id": "termination",
+            "kind": "termination",
+            "label": "Termination",
+            "metrics": {
+              "configured_max_turns": null,
+              "execution_detail": null,
+              "reported_turns": null,
+              "stop_reason": null,
+              "termination_reason": null
+            },
+            "started_at": null,
+            "status": "success",
+            "status_reason": "No authoritative termination reason is available.",
+            "summary": "unknown \u00b7 ? reported turn(s)"
+          },
+          {
+            "artifact_refs": [
+              "test_log"
+            ],
+            "completed_at": "2000-01-01T00:00:00+00:00",
+            "diagnostic_codes": [],
+            "duration_seconds": null,
+            "id": "evaluation",
+            "kind": "evaluation",
+            "label": "Deterministic Evaluation",
+            "metrics": {
+              "evaluation_skip_reason": null,
+              "evaluation_skipped": false,
+              "execution_mode": "host",
+              "f2p_passed": 0,
+              "f2p_total": 0,
+              "failure_mode": "tests_pass",
+              "p2p_passed": 0,
+              "p2p_total": 0,
+              "patch_applied": true,
+              "resolved": true
+            },
+            "started_at": null,
+            "status": "success",
+            "status_reason": "The candidate patch applied and deterministic tests passed.",
+            "summary": "host \u00b7 tests_pass"
+          },
+          {
+            "artifact_refs": [
+              "agent_patch",
+              "prompt",
+              "test_log"
+            ],
+            "completed_at": "2000-01-01T00:00:00+00:00",
+            "diagnostic_codes": [],
+            "duration_seconds": null,
+            "id": "result",
+            "kind": "result",
+            "label": "Result Artifacts",
+            "metrics": {
+              "failure_mode": "tests_pass",
+              "resolved": true,
+              "task_outcome": "resolved"
+            },
+            "started_at": null,
+            "status": "success",
+            "status_reason": "Scientific outcome: resolved.",
+            "summary": "resolved \u00b7 3 safe artifact(s)"
+          }
+        ],
+        "schema_version": 1,
+        "started_at": "2000-01-01T00:00:00+00:00",
+        "task_outcome": "resolved"
+      }
+    },
+    {
+      "activity_observed": false,
+      "actual_model": null,
+      "agent": "dummy",
+      "agent_harness": "dummy",
+      "agent_harness_version": null,
+      "available_relevant_files_count": 0,
+      "cache_read_tokens": null,
+      "case_id": "demo-ranges",
+      "case_title": "Synthetic demo: half-open interval coverage",
+      "case_type": "coding",
+      "configured_max_turns": null,
+      "created_at": "2000-01-01T00:00:00+00:00",
+      "evaluation_skip_reason": null,
+      "evaluation_skipped": false,
+      "event_count": 0,
+      "execution_detail": null,
+      "failure_mode": "no_code_change",
+      "files_changed": [],
+      "first_event_seconds": null,
+      "historical": false,
+      "included_relevant_files_count": 0,
+      "input_tokens": null,
+      "last_event_seconds": null,
+      "lines_added": 0,
+      "lines_removed": 0,
+      "mcp_activity_observed": false,
+      "mcp_condition": "none",
+      "mcp_enabled": false,
+      "mcp_process_started": null,
+      "mcp_profile": null,
+      "mcp_revision": null,
+      "mcp_revision_dirty": null,
+      "mcp_server_name": null,
+      "mcp_servers": [],
+      "mcp_telemetry_available": false,
+      "mcp_tool_call_count": 0,
+      "mcp_tool_error_count": 0,
+      "mcp_tool_success_count": 0,
+      "mcp_tools_discovered": null,
+      "model_source": "not applicable",
+      "output_tokens": null,
+      "partial_patch_captured": false,
+      "patch_applied": false,
+      "patch_captured": false,
+      "patch_comparison": {
+        "agent_files_changed": [],
+        "agent_lines_added": 0,
+        "agent_lines_removed": 0,
+        "exact_file_set_match": false,
+        "file_overlap_count": 0,
+        "file_overlap_jaccard": 0.0,
+        "gold_files_changed": [
+          "coverage.py",
+          "ranges.py"
+        ],
+        "gold_lines_added": 2,
+        "gold_lines_removed": 2,
+        "overlapping_files": []
+      },
+      "prompt_hash": "bdc172cf45d12bdef42e40df46a22f865e23fb64f7819e6ac1acda28aa499e8b",
+      "prompt_mode": "issue_only",
+      "provider": null,
+      "provider_host": null,
+      "reported_cost_usd": null,
+      "reported_turns": null,
+      "requested_model": null,
+      "resolved": false,
+      "run_config": null,
+      "run_id": "demo-ranges-dummy",
+      "runtime_seconds": 0,
+      "schema_version": 1,
+      "stop_reason": null,
+      "termination_reason": null,
+      "timeout_seconds": 0,
+      "tool_event_count": 0,
+      "workflow": {
+        "completed_at": "2000-01-01T00:00:00+00:00",
+        "diagnostics": [],
+        "edges": [
+          {
+            "animated": false,
+            "id": "source-to-case",
+            "label": null,
+            "source": "source",
+            "status": "completed",
+            "target": "case"
+          },
+          {
+            "animated": false,
+            "id": "case-to-worktree",
+            "label": null,
+            "source": "case",
+            "status": "completed",
+            "target": "worktree"
+          },
+          {
+            "animated": false,
+            "id": "worktree-to-prompt",
+            "label": null,
+            "source": "worktree",
+            "status": "completed",
+            "target": "prompt"
+          },
+          {
+            "animated": false,
+            "id": "prompt-to-agent",
+            "label": null,
+            "source": "prompt",
+            "status": "completed",
+            "target": "agent"
+          },
+          {
+            "animated": false,
+            "id": "agent-to-tools",
+            "label": null,
+            "source": "agent",
+            "status": "skipped",
+            "target": "tools"
+          },
+          {
+            "animated": false,
+            "id": "tools-to-patch",
+            "label": null,
+            "source": "tools",
+            "status": "skipped",
+            "target": "patch"
+          },
+          {
+            "animated": false,
+            "id": "patch-to-termination",
+            "label": null,
+            "source": "patch",
+            "status": "completed",
+            "target": "termination"
+          },
+          {
+            "animated": false,
+            "id": "termination-to-evaluation",
+            "label": null,
+            "source": "termination",
+            "status": "error",
+            "target": "evaluation"
+          },
+          {
+            "animated": false,
+            "id": "evaluation-to-result",
+            "label": null,
+            "source": "evaluation",
+            "status": "error",
+            "target": "result"
+          }
+        ],
+        "freshness_seconds": 0,
+        "health": "healthy",
+        "health_source": "authoritative",
+        "last_activity_age_seconds": 0,
+        "last_activity_at": "2000-01-01T00:00:00+00:00",
+        "nodes": [
+          {
+            "artifact_refs": [],
+            "completed_at": "2000-01-01T00:00:00+00:00",
+            "diagnostic_codes": [],
+            "duration_seconds": null,
+            "id": "source",
+            "kind": "source",
+            "label": "Case Source / Provenance",
+            "metrics": {
+              "repository": "demo-ranges"
+            },
+            "started_at": null,
+            "status": "success",
+            "status_reason": "Safe case provenance is available.",
+            "summary": "Issue and merge-request provenance used before the case was frozen."
+          },
+          {
+            "artifact_refs": [
+              "case_metadata"
+            ],
+            "completed_at": "2000-01-01T00:00:00+00:00",
+            "diagnostic_codes": [],
+            "duration_seconds": null,
+            "id": "case",
+            "kind": "case",
+            "label": "Frozen Case",
+            "metrics": {
+              "base_commit": "239e8654f3c7"
+            },
+            "started_at": null,
+            "status": "success",
+            "status_reason": "Frozen metadata loaded.",
+            "summary": "demo-ranges \u00b7 demo-ranges"
+          },
+          {
+            "artifact_refs": [],
+            "completed_at": "2000-01-01T00:00:00+00:00",
+            "diagnostic_codes": [],
+            "duration_seconds": null,
+            "id": "worktree",
+            "kind": "worktree",
+            "label": "Solver Worktree",
+            "metrics": {
+              "execution_mode": "host"
+            },
+            "started_at": "2000-01-01T00:00:00+00:00",
+            "status": "success",
+            "status_reason": "Solving checkout evidence is present.",
+            "summary": "Isolated checkout at the case base commit."
+          },
+          {
+            "artifact_refs": [
+              "prompt"
+            ],
+            "completed_at": "2000-01-01T00:00:00+00:00",
+            "diagnostic_codes": [],
+            "duration_seconds": null,
+            "id": "prompt",
+            "kind": "prompt",
+            "label": "Prompt Context",
+            "metrics": {
+              "available_hints": 0,
+              "included_hints": 0,
+              "prompt_mode": "issue_only"
+            },
+            "started_at": "2000-01-01T00:00:00+00:00",
+            "status": "success",
+            "status_reason": "Prompt artifact and hash are consistent.",
+            "summary": "issue_only \u00b7 0 hint(s) included"
+          },
+          {
+            "artifact_refs": [],
+            "completed_at": "2000-01-01T00:00:00+00:00",
+            "diagnostic_codes": [],
+            "duration_seconds": 0,
+            "id": "agent",
+            "kind": "agent",
+            "label": "Agent Harness",
+            "metrics": {
+              "actual_model": null,
+              "agent": "dummy",
+              "api_error_count": 0,
+              "configured_max_turns": null,
+              "first_event_seconds": null,
+              "harness": "dummy",
+              "harness_version": null,
+              "last_event_seconds": null,
+              "permission_denial_count": 0,
+              "provider": null,
+              "provider_host": null,
+              "reported_cost_usd": null,
+              "reported_turns": null,
+              "requested_model": null,
+              "timeout_seconds": 0
+            },
+            "started_at": "2000-01-01T00:00:00+00:00",
+            "status": "success",
+            "status_reason": "Agent execution completed.",
+            "summary": "dummy through dummy"
+          },
+          {
+            "artifact_refs": [],
+            "completed_at": "2000-01-01T00:00:00+00:00",
+            "diagnostic_codes": [],
+            "duration_seconds": null,
+            "id": "tools",
+            "kind": "tools",
+            "label": "Agent Tools",
+            "metrics": {
+              "command_count": 0,
+              "counts": {
+                "Bash": 0,
+                "Edit": 0,
+                "Grep": 0,
+                "Read": 0,
+                "Write": 0,
+                "other": 0
+              },
+              "edit_count": 0,
+              "event_count": 0,
+              "first_event_seconds": null,
+              "last_event_seconds": null,
+              "latest_event": null,
+              "read_search_count": 0,
+              "recent_significant_events": [],
+              "summary": "No structured events",
+              "tool_event_count": 0
+            },
+            "started_at": null,
+            "status": "skipped",
+            "status_reason": "No structured tool activity is available.",
+            "summary": "No structured events"
+          },
+          {
+            "artifact_refs": [],
+            "completed_at": "2000-01-01T00:00:00+00:00",
+            "diagnostic_codes": [],
+            "duration_seconds": null,
+            "id": "patch",
+            "kind": "patch",
+            "label": "Patch Capture",
+            "metrics": {
+              "files_changed": [],
+              "lines_added": 0,
+              "lines_removed": 0,
+              "partial_patch_captured": false,
+              "patch_captured": false
+            },
+            "started_at": null,
+            "status": "skipped",
+            "status_reason": "No patch was produced.",
+            "summary": "0 file(s) \u00b7 +0 / -0"
+          },
+          {
+            "artifact_refs": [],
+            "completed_at": "2000-01-01T00:00:00+00:00",
+            "diagnostic_codes": [],
+            "duration_seconds": null,
+            "id": "termination",
+            "kind": "termination",
+            "label": "Termination",
+            "metrics": {
+              "configured_max_turns": null,
+              "execution_detail": null,
+              "reported_turns": null,
+              "stop_reason": null,
+              "termination_reason": null
+            },
+            "started_at": null,
+            "status": "success",
+            "status_reason": "No authoritative termination reason is available.",
+            "summary": "unknown \u00b7 ? reported turn(s)"
+          },
+          {
+            "artifact_refs": [
+              "test_log"
+            ],
+            "completed_at": "2000-01-01T00:00:00+00:00",
+            "diagnostic_codes": [],
+            "duration_seconds": null,
+            "id": "evaluation",
+            "kind": "evaluation",
+            "label": "Deterministic Evaluation",
+            "metrics": {
+              "evaluation_skip_reason": null,
+              "evaluation_skipped": false,
+              "execution_mode": "host",
+              "f2p_passed": 0,
+              "f2p_total": 0,
+              "failure_mode": "no_code_change",
+              "p2p_passed": 0,
+              "p2p_total": 0,
+              "patch_applied": false,
+              "resolved": false
+            },
+            "started_at": null,
+            "status": "error",
+            "status_reason": "No candidate patch was produced; this is a scientific no-code-change outcome.",
+            "summary": "host \u00b7 no_code_change"
+          },
+          {
+            "artifact_refs": [
+              "prompt",
+              "test_log"
+            ],
+            "completed_at": "2000-01-01T00:00:00+00:00",
+            "diagnostic_codes": [],
+            "duration_seconds": null,
+            "id": "result",
+            "kind": "result",
+            "label": "Result Artifacts",
+            "metrics": {
+              "failure_mode": "no_code_change",
+              "resolved": false,
+              "task_outcome": "unresolved"
+            },
+            "started_at": null,
+            "status": "error",
+            "status_reason": "Scientific outcome: unresolved.",
+            "summary": "unresolved \u00b7 2 safe artifact(s)"
+          }
+        ],
+        "schema_version": 1,
+        "started_at": "2000-01-01T00:00:00+00:00",
+        "task_outcome": "unresolved"
+      }
+    },
+    {
+      "activity_observed": false,
+      "actual_model": null,
+      "agent": "gold",
+      "agent_harness": "gold",
+      "agent_harness_version": null,
+      "available_relevant_files_count": 0,
+      "cache_read_tokens": null,
+      "case_id": "demo-ranges",
+      "case_title": "Synthetic demo: half-open interval coverage",
+      "case_type": "coding",
+      "configured_max_turns": null,
+      "created_at": "2000-01-01T00:00:00+00:00",
+      "evaluation_skip_reason": null,
+      "evaluation_skipped": false,
+      "event_count": 0,
+      "execution_detail": null,
+      "failure_mode": "tests_pass",
+      "files_changed": [
+        "coverage.py",
+        "ranges.py"
+      ],
+      "first_event_seconds": null,
+      "historical": false,
+      "included_relevant_files_count": 0,
+      "input_tokens": null,
+      "last_event_seconds": null,
+      "lines_added": 2,
+      "lines_removed": 2,
+      "mcp_activity_observed": false,
+      "mcp_condition": "none",
+      "mcp_enabled": false,
+      "mcp_process_started": null,
+      "mcp_profile": null,
+      "mcp_revision": null,
+      "mcp_revision_dirty": null,
+      "mcp_server_name": null,
+      "mcp_servers": [],
+      "mcp_telemetry_available": false,
+      "mcp_tool_call_count": 0,
+      "mcp_tool_error_count": 0,
+      "mcp_tool_success_count": 0,
+      "mcp_tools_discovered": null,
+      "model_source": "not applicable; sanity-check agent",
+      "output_tokens": null,
+      "partial_patch_captured": false,
+      "patch_applied": true,
+      "patch_captured": true,
+      "patch_comparison": {
+        "agent_files_changed": [
+          "coverage.py",
+          "ranges.py"
+        ],
+        "agent_lines_added": 2,
+        "agent_lines_removed": 2,
+        "exact_file_set_match": true,
+        "file_overlap_count": 2,
+        "file_overlap_jaccard": 1.0,
+        "gold_files_changed": [
+          "coverage.py",
+          "ranges.py"
+        ],
+        "gold_lines_added": 2,
+        "gold_lines_removed": 2,
+        "overlapping_files": [
+          "coverage.py",
+          "ranges.py"
+        ]
+      },
+      "prompt_hash": "bdc172cf45d12bdef42e40df46a22f865e23fb64f7819e6ac1acda28aa499e8b",
+      "prompt_mode": "issue_only",
+      "provider": null,
+      "provider_host": null,
+      "reported_cost_usd": null,
+      "reported_turns": null,
+      "requested_model": null,
+      "resolved": true,
+      "run_config": null,
+      "run_id": "demo-ranges-gold",
+      "runtime_seconds": 0,
+      "schema_version": 1,
+      "stop_reason": null,
+      "termination_reason": null,
+      "timeout_seconds": 0,
+      "tool_event_count": 0,
+      "workflow": {
+        "completed_at": "2000-01-01T00:00:00+00:00",
+        "diagnostics": [],
+        "edges": [
+          {
+            "animated": false,
+            "id": "source-to-case",
+            "label": null,
+            "source": "source",
+            "status": "completed",
+            "target": "case"
+          },
+          {
+            "animated": false,
+            "id": "case-to-worktree",
+            "label": null,
+            "source": "case",
+            "status": "completed",
+            "target": "worktree"
+          },
+          {
+            "animated": false,
+            "id": "worktree-to-prompt",
+            "label": null,
+            "source": "worktree",
+            "status": "completed",
+            "target": "prompt"
+          },
+          {
+            "animated": false,
+            "id": "prompt-to-agent",
+            "label": null,
+            "source": "prompt",
+            "status": "completed",
+            "target": "agent"
+          },
+          {
+            "animated": false,
+            "id": "agent-to-tools",
+            "label": null,
+            "source": "agent",
+            "status": "skipped",
+            "target": "tools"
+          },
+          {
+            "animated": false,
+            "id": "tools-to-patch",
+            "label": null,
+            "source": "tools",
+            "status": "completed",
+            "target": "patch"
+          },
+          {
+            "animated": false,
+            "id": "patch-to-termination",
+            "label": null,
+            "source": "patch",
+            "status": "completed",
+            "target": "termination"
+          },
+          {
+            "animated": false,
+            "id": "termination-to-evaluation",
+            "label": null,
+            "source": "termination",
+            "status": "completed",
+            "target": "evaluation"
+          },
+          {
+            "animated": false,
+            "id": "evaluation-to-result",
+            "label": null,
+            "source": "evaluation",
+            "status": "completed",
+            "target": "result"
+          }
+        ],
+        "freshness_seconds": 0,
+        "health": "healthy",
+        "health_source": "authoritative",
+        "last_activity_age_seconds": 0,
+        "last_activity_at": "2000-01-01T00:00:00+00:00",
+        "nodes": [
+          {
+            "artifact_refs": [],
+            "completed_at": "2000-01-01T00:00:00+00:00",
+            "diagnostic_codes": [],
+            "duration_seconds": null,
+            "id": "source",
+            "kind": "source",
+            "label": "Case Source / Provenance",
+            "metrics": {
+              "repository": "demo-ranges"
+            },
+            "started_at": null,
+            "status": "success",
+            "status_reason": "Safe case provenance is available.",
+            "summary": "Issue and merge-request provenance used before the case was frozen."
+          },
+          {
+            "artifact_refs": [
+              "case_metadata"
+            ],
+            "completed_at": "2000-01-01T00:00:00+00:00",
+            "diagnostic_codes": [],
+            "duration_seconds": null,
+            "id": "case",
+            "kind": "case",
+            "label": "Frozen Case",
+            "metrics": {
+              "base_commit": "239e8654f3c7"
+            },
+            "started_at": null,
+            "status": "success",
+            "status_reason": "Frozen metadata loaded.",
+            "summary": "demo-ranges \u00b7 demo-ranges"
+          },
+          {
+            "artifact_refs": [],
+            "completed_at": "2000-01-01T00:00:00+00:00",
+            "diagnostic_codes": [],
+            "duration_seconds": null,
+            "id": "worktree",
+            "kind": "worktree",
+            "label": "Solver Worktree",
+            "metrics": {
+              "execution_mode": "host"
+            },
+            "started_at": "2000-01-01T00:00:00+00:00",
+            "status": "success",
+            "status_reason": "Solving checkout evidence is present.",
+            "summary": "Isolated checkout at the case base commit."
+          },
+          {
+            "artifact_refs": [
+              "prompt"
+            ],
+            "completed_at": "2000-01-01T00:00:00+00:00",
+            "diagnostic_codes": [],
+            "duration_seconds": null,
+            "id": "prompt",
+            "kind": "prompt",
+            "label": "Prompt Context",
+            "metrics": {
+              "available_hints": 0,
+              "included_hints": 0,
+              "prompt_mode": "issue_only"
+            },
+            "started_at": "2000-01-01T00:00:00+00:00",
+            "status": "success",
+            "status_reason": "Prompt artifact and hash are consistent.",
+            "summary": "issue_only \u00b7 0 hint(s) included"
+          },
+          {
+            "artifact_refs": [],
+            "completed_at": "2000-01-01T00:00:00+00:00",
+            "diagnostic_codes": [],
+            "duration_seconds": 0,
+            "id": "agent",
+            "kind": "agent",
+            "label": "Agent Harness",
+            "metrics": {
+              "actual_model": null,
+              "agent": "gold",
+              "api_error_count": 0,
+              "configured_max_turns": null,
+              "first_event_seconds": null,
+              "harness": "gold",
+              "harness_version": null,
+              "last_event_seconds": null,
+              "permission_denial_count": 0,
+              "provider": null,
+              "provider_host": null,
+              "reported_cost_usd": null,
+              "reported_turns": null,
+              "requested_model": null,
+              "timeout_seconds": 0
+            },
+            "started_at": "2000-01-01T00:00:00+00:00",
+            "status": "success",
+            "status_reason": "Agent execution completed.",
+            "summary": "gold through gold"
+          },
+          {
+            "artifact_refs": [],
+            "completed_at": "2000-01-01T00:00:00+00:00",
+            "diagnostic_codes": [],
+            "duration_seconds": null,
+            "id": "tools",
+            "kind": "tools",
+            "label": "Agent Tools",
+            "metrics": {
+              "command_count": 0,
+              "counts": {
+                "Bash": 0,
+                "Edit": 0,
+                "Grep": 0,
+                "Read": 0,
+                "Write": 0,
+                "other": 0
+              },
+              "edit_count": 0,
+              "event_count": 0,
+              "first_event_seconds": null,
+              "last_event_seconds": null,
+              "latest_event": null,
+              "read_search_count": 0,
+              "recent_significant_events": [],
+              "summary": "No structured events",
+              "tool_event_count": 0
+            },
+            "started_at": null,
+            "status": "skipped",
+            "status_reason": "No structured tool activity is available.",
+            "summary": "No structured events"
+          },
+          {
+            "artifact_refs": [
+              "agent_patch"
+            ],
+            "completed_at": "2000-01-01T00:00:00+00:00",
+            "diagnostic_codes": [],
+            "duration_seconds": null,
+            "id": "patch",
+            "kind": "patch",
+            "label": "Patch Capture",
+            "metrics": {
+              "files_changed": [
+                "coverage.py",
+                "ranges.py"
+              ],
+              "lines_added": 2,
+              "lines_removed": 2,
+              "partial_patch_captured": false,
+              "patch_captured": true
+            },
+            "started_at": null,
+            "status": "success",
+            "status_reason": "Patch captured.",
+            "summary": "2 file(s) \u00b7 +2 / -2"
           },
           {
             "artifact_refs": [],

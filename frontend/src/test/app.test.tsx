@@ -29,6 +29,17 @@ function renderApp(path = "/") { return render(<MemoryRouter initialEntries={[pa
 describe("PatchBench evaluation workspace", () => {
   beforeEach(() => {localStorage.clear();mockData()});
 
+  it("labels synthetic example outcomes separately from research results", async () => {
+    const originalFetch = globalThis.fetch;
+    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
+      if (!String(input).includes("dashboard")) return originalFetch(input);
+      return new Response(JSON.stringify({ ...dashboard, cases: dashboard.cases.map((item) =>
+        ({ ...item, issue_title: "Synthetic demo: word labels" })) }), { status: 200 });
+    }));
+    renderApp();
+    expect(await screen.findByText(/Synthetic examples: these outcomes/)).toBeInTheDocument();
+  });
+
   it("renders the dashboard and max-turn partial-patch evidence", async () => {
     renderApp();
     expect(await screen.findByRole("heading", { name: "PatchBench" })).toBeInTheDocument();

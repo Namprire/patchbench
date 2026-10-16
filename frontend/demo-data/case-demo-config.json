@@ -1,0 +1,39 @@
+{
+  "allowed_operations": [
+    "validate-case",
+    "run",
+    "evaluate-patch"
+  ],
+  "base_commit": "bbb206ffda963dc5eeddf7d7176ec01baa02154b",
+  "case_id": "demo-config",
+  "case_type": "coding",
+  "draft": false,
+  "evaluation": {
+    "setup_command_count": 0,
+    "test_command": "python -B check_example.py",
+    "timeout_seconds": null,
+    "workdir": null
+  },
+  "fix_commit": "f7ab233de2cbc6bd5aa91985999e20349ec31f45",
+  "gold_files_changed": [
+    "config.py"
+  ],
+  "human_reference_patch": null,
+  "issue_text": "# Synthetic demo: strict worker configuration\n\n`parse_config(text)` reads one `key=value` per line. Ignore blank lines\nand whole-line comments beginning with `#`, after trimming whitespace.\nTrim keys and values, but keep keys case-sensitive. Supported keys are\n`workers` (ASCII decimal integer from 1 to 32 inclusive) and `verbose`\n(`true` or `false`, case-insensitive). Omitted values default to workers=1\nand verbose=False. Return a dictionary containing both keys.\n\nThe current parser silently accepts invalid settings and treats the\nstring `false` as true. Raise ValueError for unknown or duplicate keys,\nmissing or multiple equals signs, empty values, signed/nondecimal worker\ncounts, out-of-range workers, and any other verbose spelling. Do not\nsilently retain a partially valid configuration. Inline comments are\nnot supported. Valid configurations must keep working.\n",
+  "issue_title": "Synthetic demo: strict worker configuration",
+  "last_run_at": "2000-01-01T00:00:00+00:00",
+  "repository": "demo-config",
+  "run_count": 2,
+  "run_ids": [
+    "demo-config-dummy",
+    "demo-config-gold"
+  ],
+  "safe_provenance": {
+    "difficulty": "medium",
+    "research_case": false,
+    "source": "invented-synthetic-demo",
+    "source_date_is_synthetic": true
+  },
+  "schema_version": 1,
+  "validation_status": true
+}

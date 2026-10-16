@@ -25,6 +25,7 @@ export function AppShell() {
   const repositoryScope = repositories.length === 1 ? repositories[0].toUpperCase() : repositories.length > 1 ? "ALL REPOSITORIES" : "UNKNOWN";
   const stale = manifest?.generated_at ? Date.now() - new Date(manifest.generated_at).getTime() > 24 * 60 * 60 * 1000 : false;
   const incomplete = Boolean(dashboard && (dashboard.run_count !== dashboard.runs.length || dashboard.case_count !== dashboard.cases.length));
+  const syntheticExamples = Boolean(dashboard?.cases.length && dashboard.cases.every((item) => item.issue_title.startsWith("Synthetic demo:")));
   const handleRefresh = async () => { try { await refresh(); toast.success("Dashboard data refreshed"); } catch { toast.error("Dashboard refresh failed"); } };
   const freshness = { timestamp: manifest?.generated_at ?? null, schemaVersion: manifest?.schema_version ?? null, repositoryScope, caseCount: dashboard?.case_count ?? null, runCount: dashboard?.run_count ?? null, loading };
 
@@ -52,7 +53,7 @@ export function AppShell() {
     </header>
     <main className={cn("min-h-screen px-4 pt-[var(--shell-offset)] md:px-6 xl:px-8",pathname==="/workflow"||/^\/runs\/[^/]+\/[^/]+$/.test(pathname)?"":"pb-16")} style={pathname==="/workflow"||/^\/runs\/[^/]+\/[^/]+$/.test(pathname)?{paddingBottom:"calc(var(--console-h, 0px) + var(--console-page-gap))"}:{paddingBottom:"calc(var(--compare-tray-h, 0px) + 64px)"}}>
       <div className="mx-auto max-w-page pt-4">
-        <div className="space-y-2">{refreshError && <Alert variant="danger"><AlertDescription>Refresh failed. The previous export remains available. {refreshError}</AlertDescription></Alert>}{stale && <Alert variant="warn"><AlertDescription>The local export is more than 24 hours old. Last export: <span className="font-mono text-xs">{new Date(manifest!.generated_at).toLocaleString()}</span></AlertDescription></Alert>}{!loading && !error && !dashboard && <Alert variant="danger"><AlertDescription>The dashboard export does not contain displayable data. Regenerate the local export and refresh.</AlertDescription></Alert>}{incomplete && <Alert variant="warn"><AlertDescription>This export is incomplete: the manifest counts do not match the available case or run summaries. Historical records remain visible.</AlertDescription></Alert>}</div>
+        <div className="space-y-2">{syntheticExamples && <Alert><AlertDescription>Synthetic examples: these outcomes demonstrate the workflow and are not research benchmark results.</AlertDescription></Alert>}{refreshError && <Alert variant="danger"><AlertDescription>Refresh failed. The previous export remains available. {refreshError}</AlertDescription></Alert>}{stale && <Alert variant="warn"><AlertDescription>The local export is more than 24 hours old. Last export: <span className="font-mono text-xs">{new Date(manifest!.generated_at).toLocaleString()}</span></AlertDescription></Alert>}{!loading && !error && !dashboard && <Alert variant="danger"><AlertDescription>The dashboard export does not contain displayable data. Regenerate the local export and refresh.</AlertDescription></Alert>}{incomplete && <Alert variant="warn"><AlertDescription>This export is incomplete: the manifest counts do not match the available case or run summaries. Historical records remain visible.</AlertDescription></Alert>}</div>
         <Outlet />
       </div>
     </main>

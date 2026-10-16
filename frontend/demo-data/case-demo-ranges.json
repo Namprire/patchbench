@@ -1,0 +1,40 @@
+{
+  "allowed_operations": [
+    "validate-case",
+    "run",
+    "evaluate-patch"
+  ],
+  "base_commit": "239e8654f3c784b95dd6de4c5d510f40e38f1313",
+  "case_id": "demo-ranges",
+  "case_type": "coding",
+  "draft": false,
+  "evaluation": {
+    "setup_command_count": 0,
+    "test_command": "python -B check_example.py",
+    "timeout_seconds": null,
+    "workdir": null
+  },
+  "fix_commit": "35d177316928433aa451a4909ca0cdd71487b7c9",
+  "gold_files_changed": [
+    "coverage.py",
+    "ranges.py"
+  ],
+  "human_reference_patch": null,
+  "issue_text": "# Synthetic demo: half-open interval coverage\n\nThe range utilities disagree about nested intervals and endpoints.\n`merge_ranges(ranges)` must return a sorted list of disjoint (start, end)\ntuples representing the same union of half-open integer intervals\n[start, end). Merge overlapping or touching ranges, preserve the outer\nendpoint of nested ranges, discard empty intervals, and reject reversed\nintervals with ValueError. Negative endpoints are valid. Do not mutate\nthe input sequence. Empty input produces an empty list.\n\n`covered_length(ranges)` must use the same union and return its total\nlength: a half-open interval [2, 5) contributes 3, not 4. Overlap must\nnever be counted twice. Review both modules; correcting only merging or\nonly length calculation leaves valid inputs broken.\n",
+  "issue_title": "Synthetic demo: half-open interval coverage",
+  "last_run_at": "2000-01-01T00:00:00+00:00",
+  "repository": "demo-ranges",
+  "run_count": 2,
+  "run_ids": [
+    "demo-ranges-dummy",
+    "demo-ranges-gold"
+  ],
+  "safe_provenance": {
+    "difficulty": "harder",
+    "research_case": false,
+    "source": "invented-synthetic-demo",
+    "source_date_is_synthetic": true
+  },
+  "schema_version": 1,
+  "validation_status": true
+}

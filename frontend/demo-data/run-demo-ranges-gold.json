@@ -1,0 +1,518 @@
+{
+  "activity_observed": false,
+  "actual_model": null,
+  "agent": "gold",
+  "agent_harness": "gold",
+  "agent_harness_version": null,
+  "artifacts": {
+    "agent_debug": null,
+    "agent_events": null,
+    "agent_patch": "diff --git a/coverage.py b/coverage.py\nindex d8e1444..5fc9b66 100644\n--- a/coverage.py\n+++ b/coverage.py\n@@ -1,4 +1,4 @@\n from ranges import merge_ranges\n \n def covered_length(ranges):\n-    return sum(end - start + 1 for start, end in merge_ranges(ranges))\n+    return sum(end - start for start, end in merge_ranges(ranges))\ndiff --git a/ranges.py b/ranges.py\nindex 37e033e..bc130a2 100644\n--- a/ranges.py\n+++ b/ranges.py\n@@ -6,7 +6,7 @@ def merge_ranges(ranges):\n         if start == end:\n             continue\n         if merged and start <= merged[-1][1]:\n-            merged[-1] = (merged[-1][0], end)\n+            merged[-1] = (merged[-1][0], max(merged[-1][1], end))\n         else:\n             merged.append((start, end))\n     return merged\n",
+    "answer": null,
+    "human_reference_patch": null,
+    "mcp_activity": null,
+    "prompt": "# Synthetic demo: half-open interval coverage\n\nThe range utilities disagree about nested intervals and endpoints.\n`merge_ranges(ranges)` must return a sorted list of disjoint (start, end)\ntuples representing the same union of half-open integer intervals\n[start, end). Merge overlapping or touching ranges, preserve the outer\nendpoint of nested ranges, discard empty intervals, and reject reversed\nintervals with ValueError. Negative endpoints are valid. Do not mutate\nthe input sequence. Empty input produces an empty list.\n\n`covered_length(ranges)` must use the same union and return its total\nlength: a half-open interval [2, 5) contributes 3, not 4. Overlap must\nnever be counted twice. Review both modules; correcting only merging or\nonly length calculation leaves valid inputs broken.\n",
+    "test_log": "command: python -B check_example.py\ncwd: <local-path>\nenv_overrides: \nexit_code: 0\nduration_seconds: 0.043283\ntimed_out: false\nstdout:\n\nstderr:\n...\n----------------------------------------------------------------------\nRan 3 tests in 0.000s\n\nOK\n\n",
+    "trajectory": null
+  },
+  "available_relevant_files_count": 0,
+  "cache_read_tokens": null,
+  "case_id": "demo-ranges",
+  "case_title": "Synthetic demo: half-open interval coverage",
+  "case_type": "coding",
+  "configured_max_turns": null,
+  "created_at": "2000-01-01T00:00:00+00:00",
+  "evaluation_skip_reason": null,
+  "evaluation_skipped": false,
+  "event_count": 0,
+  "execution_detail": null,
+  "failure_mode": "tests_pass",
+  "files_changed": [
+    "coverage.py",
+    "ranges.py"
+  ],
+  "first_event_seconds": null,
+  "historical": false,
+  "included_relevant_files_count": 0,
+  "input_tokens": null,
+  "last_event_seconds": null,
+  "lines_added": 2,
+  "lines_removed": 2,
+  "mcp_activity_observed": false,
+  "mcp_condition": "none",
+  "mcp_enabled": false,
+  "mcp_process_started": null,
+  "mcp_profile": null,
+  "mcp_revision": null,
+  "mcp_revision_dirty": null,
+  "mcp_server_name": null,
+  "mcp_servers": [],
+  "mcp_telemetry_available": false,
+  "mcp_tool_call_count": 0,
+  "mcp_tool_error_count": 0,
+  "mcp_tool_success_count": 0,
+  "mcp_tools_discovered": null,
+  "model_source": "not applicable; sanity-check agent",
+  "output_tokens": null,
+  "partial_patch_captured": false,
+  "patch_applied": true,
+  "patch_captured": true,
+  "patch_comparison": {
+    "agent_files_changed": [
+      "coverage.py",
+      "ranges.py"
+    ],
+    "agent_lines_added": 2,
+    "agent_lines_removed": 2,
+    "exact_file_set_match": true,
+    "file_overlap_count": 2,
+    "file_overlap_jaccard": 1.0,
+    "gold_files_changed": [
+      "coverage.py",
+      "ranges.py"
+    ],
+    "gold_lines_added": 2,
+    "gold_lines_removed": 2,
+    "overlapping_files": [
+      "coverage.py",
+      "ranges.py"
+    ]
+  },
+  "prompt_hash": "bdc172cf45d12bdef42e40df46a22f865e23fb64f7819e6ac1acda28aa499e8b",
+  "prompt_mode": "issue_only",
+  "provider": null,
+  "provider_host": null,
+  "raw_sanitized_metadata": {
+    "actual_model": null,
+    "agent": "gold",
+    "agent_activity_observed": false,
+    "agent_api_error_count": 0,
+    "agent_ca_certificate_count": 0,
+    "agent_ca_configured": false,
+    "agent_ca_sha256": null,
+    "agent_command_sanitized": null,
+    "agent_debug": false,
+    "agent_event_count": 0,
+    "agent_execution_detail": null,
+    "agent_execution_mode": "host",
+    "agent_first_event_seconds": null,
+    "agent_harness": null,
+    "agent_harness_version": null,
+    "agent_image": null,
+    "agent_last_event_seconds": null,
+    "agent_max_turns": null,
+    "agent_num_turns": null,
+    "agent_permission_denial_count": 0,
+    "agent_seconds_since_last_event_at_exit": null,
+    "agent_session_id": null,
+    "agent_stop_reason": null,
+    "agent_termination_reason": null,
+    "agent_timeout_seconds": 0,
+    "agent_tool_event_count": 0,
+    "artifacts": {
+      "agent_patch": "agent.patch",
+      "metadata": "metadata.json",
+      "prompt": "prompt.txt",
+      "result": "result.json",
+      "test_log": "test.log"
+    },
+    "available_relevant_files_count": 0,
+    "base_commit": "239e8654f3c784b95dd6de4c5d510f40e38f1313",
+    "case_id": "demo-ranges",
+    "error": null,
+    "evaluation_execution_mode": "host",
+    "evaluation_skip_reason": null,
+    "evaluation_skipped": false,
+    "f2p_passed": 0,
+    "f2p_total": 0,
+    "failure_mode": "tests_pass",
+    "files_changed": [
+      "coverage.py",
+      "ranges.py"
+    ],
+    "included_relevant_files_count": 0,
+    "lines_added": 2,
+    "lines_removed": 2,
+    "live_output": false,
+    "mcp_activity_observed": false,
+    "mcp_condition": "none",
+    "mcp_enabled": false,
+    "mcp_process_started": null,
+    "mcp_profile": null,
+    "mcp_revision": null,
+    "mcp_revision_dirty": null,
+    "mcp_server_name": null,
+    "mcp_server_statuses": {},
+    "mcp_servers": [],
+    "mcp_telemetry_available": false,
+    "mcp_tool_call_count": 0,
+    "mcp_tool_error_count": 0,
+    "mcp_tool_success_count": 0,
+    "mcp_tools_discovered": null,
+    "model": "unknown",
+    "model_source": "not applicable; sanity-check agent",
+    "p2p_passed": 0,
+    "p2p_total": 0,
+    "partial_patch_captured": false,
+    "patch_applied": true,
+    "patch_comparison": {
+      "agent_files_changed": [
+        "coverage.py",
+        "ranges.py"
+      ],
+      "agent_lines_added": 2,
+      "agent_lines_removed": 2,
+      "exact_file_set_match": true,
+      "file_overlap_count": 2,
+      "file_overlap_jaccard": 1.0,
+      "gold_files_changed": [
+        "coverage.py",
+        "ranges.py"
+      ],
+      "gold_lines_added": 2,
+      "gold_lines_removed": 2,
+      "overlapping_files": [
+        "coverage.py",
+        "ranges.py"
+      ]
+    },
+    "prompt_hash": "bdc172cf45d12bdef42e40df46a22f865e23fb64f7819e6ac1acda28aa499e8b",
+    "prompt_mode": "issue_only",
+    "provider": null,
+    "provider_base_url_host": null,
+    "relevant_files_count": 0,
+    "repo": "<local-path>",
+    "reported_cost_usd": null,
+    "requested_model": null,
+    "resolved": true,
+    "run_id": "demo-ranges-gold",
+    "runtime_seconds": 0
+  },
+  "reported_cost_usd": null,
+  "reported_turns": null,
+  "requested_model": null,
+  "resolved": true,
+  "run_config": null,
+  "run_id": "demo-ranges-gold",
+  "runtime_seconds": 0,
+  "schema_version": 1,
+  "stop_reason": null,
+  "termination_reason": null,
+  "timeout_seconds": 0,
+  "tool_event_count": 0,
+  "workflow": {
+    "completed_at": "2000-01-01T00:00:00+00:00",
+    "diagnostics": [],
+    "edges": [
+      {
+        "animated": false,
+        "id": "source-to-case",
+        "label": null,
+        "source": "source",
+        "status": "completed",
+        "target": "case"
+      },
+      {
+        "animated": false,
+        "id": "case-to-worktree",
+        "label": null,
+        "source": "case",
+        "status": "completed",
+        "target": "worktree"
+      },
+      {
+        "animated": false,
+        "id": "worktree-to-prompt",
+        "label": null,
+        "source": "worktree",
+        "status": "completed",
+        "target": "prompt"
+      },
+      {
+        "animated": false,
+        "id": "prompt-to-agent",
+        "label": null,
+        "source": "prompt",
+        "status": "completed",
+        "target": "agent"
+      },
+      {
+        "animated": false,
+        "id": "agent-to-tools",
+        "label": null,
+        "source": "agent",
+        "status": "skipped",
+        "target": "tools"
+      },
+      {
+        "animated": false,
+        "id": "tools-to-patch",
+        "label": null,
+        "source": "tools",
+        "status": "completed",
+        "target": "patch"
+      },
+      {
+        "animated": false,
+        "id": "patch-to-termination",
+        "label": null,
+        "source": "patch",
+        "status": "completed",
+        "target": "termination"
+      },
+      {
+        "animated": false,
+        "id": "termination-to-evaluation",
+        "label": null,
+        "source": "termination",
+        "status": "completed",
+        "target": "evaluation"
+      },
+      {
+        "animated": false,
+        "id": "evaluation-to-result",
+        "label": null,
+        "source": "evaluation",
+        "status": "completed",
+        "target": "result"
+      }
+    ],
+    "freshness_seconds": 0,
+    "health": "healthy",
+    "health_source": "authoritative",
+    "last_activity_age_seconds": 0,
+    "last_activity_at": "2000-01-01T00:00:00+00:00",
+    "nodes": [
+      {
+        "artifact_refs": [],
+        "completed_at": "2000-01-01T00:00:00+00:00",
+        "diagnostic_codes": [],
+        "duration_seconds": null,
+        "id": "source",
+        "kind": "source",
+        "label": "Case Source / Provenance",
+        "metrics": {
+          "repository": "demo-ranges"
+        },
+        "started_at": null,
+        "status": "success",
+        "status_reason": "Safe case provenance is available.",
+        "summary": "Issue and merge-request provenance used before the case was frozen."
+      },
+      {
+        "artifact_refs": [
+          "case_metadata"
+        ],
+        "completed_at": "2000-01-01T00:00:00+00:00",
+        "diagnostic_codes": [],
+        "duration_seconds": null,
+        "id": "case",
+        "kind": "case",
+        "label": "Frozen Case",
+        "metrics": {
+          "base_commit": "239e8654f3c7"
+        },
+        "started_at": null,
+        "status": "success",
+        "status_reason": "Frozen metadata loaded.",
+        "summary": "demo-ranges \u00b7 demo-ranges"
+      },
+      {
+        "artifact_refs": [],
+        "completed_at": "2000-01-01T00:00:00+00:00",
+        "diagnostic_codes": [],
+        "duration_seconds": null,
+        "id": "worktree",
+        "kind": "worktree",
+        "label": "Solver Worktree",
+        "metrics": {
+          "execution_mode": "host"
+        },
+        "started_at": "2000-01-01T00:00:00+00:00",
+        "status": "success",
+        "status_reason": "Solving checkout evidence is present.",
+        "summary": "Isolated checkout at the case base commit."
+      },
+      {
+        "artifact_refs": [
+          "prompt"
+        ],
+        "completed_at": "2000-01-01T00:00:00+00:00",
+        "diagnostic_codes": [],
+        "duration_seconds": null,
+        "id": "prompt",
+        "kind": "prompt",
+        "label": "Prompt Context",
+        "metrics": {
+          "available_hints": 0,
+          "included_hints": 0,
+          "prompt_mode": "issue_only"
+        },
+        "started_at": "2000-01-01T00:00:00+00:00",
+        "status": "success",
+        "status_reason": "Prompt artifact and hash are consistent.",
+        "summary": "issue_only \u00b7 0 hint(s) included"
+      },
+      {
+        "artifact_refs": [],
+        "completed_at": "2000-01-01T00:00:00+00:00",
+        "diagnostic_codes": [],
+        "duration_seconds": 0,
+        "id": "agent",
+        "kind": "agent",
+        "label": "Agent Harness",
+        "metrics": {
+          "actual_model": null,
+          "agent": "gold",
+          "api_error_count": 0,
+          "configured_max_turns": null,
+          "first_event_seconds": null,
+          "harness": "gold",
+          "harness_version": null,
+          "last_event_seconds": null,
+          "permission_denial_count": 0,
+          "provider": null,
+          "provider_host": null,
+          "reported_cost_usd": null,
+          "reported_turns": null,
+          "requested_model": null,
+          "timeout_seconds": 0
+        },
+        "started_at": "2000-01-01T00:00:00+00:00",
+        "status": "success",
+        "status_reason": "Agent execution completed.",
+        "summary": "gold through gold"
+      },
+      {
+        "artifact_refs": [],
+        "completed_at": "2000-01-01T00:00:00+00:00",
+        "diagnostic_codes": [],
+        "duration_seconds": null,
+        "id": "tools",
+        "kind": "tools",
+        "label": "Agent Tools",
+        "metrics": {
+          "command_count": 0,
+          "counts": {
+            "Bash": 0,
+            "Edit": 0,
+            "Grep": 0,
+            "Read": 0,
+            "Write": 0,
+            "other": 0
+          },
+          "edit_count": 0,
+          "event_count": 0,
+          "first_event_seconds": null,
+          "last_event_seconds": null,
+          "latest_event": null,
+          "read_search_count": 0,
+          "recent_significant_events": [],
+          "summary": "No structured events",
+          "tool_event_count": 0
+        },
+        "started_at": null,
+        "status": "skipped",
+        "status_reason": "No structured tool activity is available.",
+        "summary": "No structured events"
+      },
+      {
+        "artifact_refs": [
+          "agent_patch"
+        ],
+        "completed_at": "2000-01-01T00:00:00+00:00",
+        "diagnostic_codes": [],
+        "duration_seconds": null,
+        "id": "patch",
+        "kind": "patch",
+        "label": "Patch Capture",
+        "metrics": {
+          "files_changed": [
+            "coverage.py",
+            "ranges.py"
+          ],
+          "lines_added": 2,
+          "lines_removed": 2,
+          "partial_patch_captured": false,
+          "patch_captured": true
+        },
+        "started_at": null,
+        "status": "success",
+        "status_reason": "Patch captured.",
+        "summary": "2 file(s) \u00b7 +2 / -2"
+      },
+      {
+        "artifact_refs": [],
+        "completed_at": "2000-01-01T00:00:00+00:00",
+        "diagnostic_codes": [],
+        "duration_seconds": null,
+        "id": "termination",
+        "kind": "termination",
+        "label": "Termination",
+        "metrics": {
+          "configured_max_turns": null,
+          "execution_detail": null,
+          "reported_turns": null,
+          "stop_reason": null,
+          "termination_reason": null
+        },
+        "started_at": null,
+        "status": "success",
+        "status_reason": "No authoritative termination reason is available.",
+        "summary": "unknown \u00b7 ? reported turn(s)"
+      },
+      {
+        "artifact_refs": [
+          "test_log"
+        ],
+        "completed_at": "2000-01-01T00:00:00+00:00",
+        "diagnostic_codes": [],
+        "duration_seconds": null,
+        "id": "evaluation",
+        "kind": "evaluation",
+        "label": "Deterministic Evaluation",
+        "metrics": {
+          "evaluation_skip_reason": null,
+          "evaluation_skipped": false,
+          "execution_mode": "host",
+          "f2p_passed": 0,
+          "f2p_total": 0,
+          "failure_mode": "tests_pass",
+          "p2p_passed": 0,
+          "p2p_total": 0,
+          "patch_applied": true,
+          "resolved": true
+        },
+        "started_at": null,
+        "status": "success",
+        "status_reason": "The candidate patch applied and deterministic tests passed.",
+        "summary": "host \u00b7 tests_pass"
+      },
+      {
+        "artifact_refs": [
+          "agent_patch",
+          "prompt",
+          "test_log"
+        ],
+        "completed_at": "2000-01-01T00:00:00+00:00",
+        "diagnostic_codes": [],
+        "duration_seconds": null,
+        "id": "result",
+        "kind": "result",
+        "label": "Result Artifacts",
+        "metrics": {
+          "failure_mode": "tests_pass",
+          "resolved": true,
+          "task_outcome": "resolved"
+        },
+        "started_at": null,
+        "status": "success",
+        "status_reason": "Scientific outcome: resolved.",
+        "summary": "resolved \u00b7 3 safe artifact(s)"
+      }
+    ],
+    "schema_version": 1,
+    "started_at": "2000-01-01T00:00:00+00:00",
+    "task_outcome": "resolved"
+  }
+}

@@ -27,6 +27,12 @@ if (process.env.PATCHBENCH_CASES_DIR) {
     "case-demo-label.json": "cases/demo-label.json",
     "run-demo-gold.json": "runs/demo-label/demo-gold.json",
     "run-demo-dummy.json": "runs/demo-label/demo-dummy.json",
+    "case-demo-config.json": "cases/demo-config.json",
+    "case-demo-ranges.json": "cases/demo-ranges.json",
+    "run-demo-config-gold.json": "runs/demo-config/demo-config-gold.json",
+    "run-demo-config-dummy.json": "runs/demo-config/demo-config-dummy.json",
+    "run-demo-ranges-gold.json": "runs/demo-ranges/demo-ranges-gold.json",
+    "run-demo-ranges-dummy.json": "runs/demo-ranges/demo-ranges-dummy.json",
   };
   for (const [source, destination] of Object.entries(mapping)) {
     const target = path.join(output, destination);

@@ -11,7 +11,7 @@
     "answer": null,
     "human_reference_patch": null,
     "mcp_activity": null,
-    "prompt": "# Synthetic demo: word labels\n\nMake label(words) join the supplied words with a hyphen. An empty list must produce an empty string.\n",
+    "prompt": "# Synthetic demo: word labels\n\n`label(words)` is used to build compact labels. It currently inserts\nspaces. Join the supplied strings with a hyphen instead. Preserve the\norder and the strings exactly, including empty strings. An empty list\nproduces an empty string; a single word is unchanged.\n",
     "test_log": "Evaluation skipped because the agent produced no code changes.\n",
     "trajectory": null
   },
@@ -68,7 +68,7 @@
     "gold_lines_removed": 1,
     "overlapping_files": []
   },
-  "prompt_hash": "ebaf9a80dd4e63fffa43f60983189539461b1fb38a41d8252f79c324cb821192",
+  "prompt_hash": "e16cb615fe88ad0f73d2cdee387fdee2404fc064dba5230e04dd1caefc454b24",
   "prompt_mode": "issue_only",
   "provider": null,
   "provider_host": null,
@@ -107,7 +107,7 @@
       "test_log": "test.log"
     },
     "available_relevant_files_count": 0,
-    "base_commit": "34a307c1978a23e8bd7dc3587cddb65bfaca9798",
+    "base_commit": "debaf7e943a88fd03273b57d9ff8d0dcf7ed8306",
     "case_id": "demo-label",
     "error": "No code changes were made by the agent",
     "evaluation_execution_mode": "host",
@@ -156,7 +156,7 @@
       "gold_lines_removed": 1,
       "overlapping_files": []
     },
-    "prompt_hash": "ebaf9a80dd4e63fffa43f60983189539461b1fb38a41d8252f79c324cb821192",
+    "prompt_hash": "e16cb615fe88ad0f73d2cdee387fdee2404fc064dba5230e04dd1caefc454b24",
     "prompt_mode": "issue_only",
     "provider": null,
     "provider_base_url_host": null,
@@ -272,7 +272,7 @@
         "kind": "source",
         "label": "Case Source / Provenance",
         "metrics": {
-          "repository": "source"
+          "repository": "demo-label"
         },
         "started_at": null,
         "status": "success",
@@ -290,12 +290,12 @@
         "kind": "case",
         "label": "Frozen Case",
         "metrics": {
-          "base_commit": "34a307c1978a"
+          "base_commit": "debaf7e943a8"
         },
         "started_at": null,
         "status": "success",
         "status_reason": "Frozen metadata loaded.",
-        "summary": "demo-label \u00b7 source"
+        "summary": "demo-label \u00b7 demo-label"
       },
       {
         "artifact_refs": [],
