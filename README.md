@@ -65,6 +65,55 @@ Optional next steps: [open the console](#research-console),
 [run a real agent](#run-a-real-coding-agent), or
 [construct cases from Rucio](#construct-your-own-cases-from-rucio).
 
+## Already have Claude Code? Run it with PatchBench
+
+PatchBench is a benchmarking framework, not an LLM. It does not provide Claude
+Code, model subscriptions, API keys or inference credits.
+
+- **Free demo:** the gold/dummy controls above need no Claude Code, model access
+  or API keys.
+- **Real AI benchmark:** bring your own Claude Code CLI and compatible provider
+  access. Requests use your provider's billing and limits.
+
+Install [Claude Code](https://code.claude.com/docs/en/setup) separately, then follow
+its [authentication guide](https://code.claude.com/docs/en/authentication) for your
+existing supported account or provider configuration. Check it in the same shell:
+
+```bash
+claude -p "Reply with OK"
+```
+
+**Current adapter limitation:** PatchBench invokes Claude Code with `--bare`.
+[That mode skips subscription/OAuth and keychain credentials](https://code.claude.com/docs/en/headless#start-faster-with-bare-mode),
+so an existing subscription login alone does not work with this adapter, even if
+the check above succeeds. For Anthropic API access, securely export your existing
+`ANTHROPIC_API_KEY` in the same shell; an API key has separate billing from a
+subscription. Other provider configurations must work in bare mode and through
+PatchBench's environment allowlist; not every Claude Code configuration is
+supported. Confirm bare-mode access before benchmarking:
+
+```bash
+claude --bare -p "Reply with OK"
+```
+
+Both checks make real model requests. Once the bare-mode check succeeds with
+compatible environment credentials, use the case generated in Quick Start:
+
+```bash
+patchbench run "$CASE_DIR" --agent claude-code \
+  --agent-max-turns 20 --agent-timeout-seconds 300 \
+  --run-id claude-r1 --no-live
+patchbench report "$PATCHBENCH_EXAMPLES/artifacts/demo-label/runs/claude-r1"
+cat "$PATCHBENCH_EXAMPLES/artifacts/demo-label/runs/claude-r1/report.md"
+```
+
+This host command needs no `--agent-env-file`: the adapter inherits allowed
+`ANTHROPIC_*` and `CLAUDE_*` variables. Use a new run ID for another attempt, and
+add `--agent-model YOUR_PROVIDER_MODEL_ID` to select a model explicitly. For
+API/gateway configuration files and container requirements, see
+[Run a real coding agent](#run-a-real-coding-agent). The `container-command`
+adapter is an alternative for your own containerized solver command.
+
 ## What is implemented
 
 - Acquisition of merged changes, draft construction, validation and case promotion.
@@ -194,13 +243,15 @@ Historical repositories can need different Python versions and dependency caches
 | `claude-code` | Invokes the Claude Code harness on the host or in a compatible solver container. |
 | `container-command` | Runs a user-supplied solver command in a container and captures its source changes. |
 
-Install the [Claude Code CLI](https://code.claude.com/docs/en/setup) separately.
-The adapter name identifies the harness, not necessarily the model: compatible
-provider gateways may route it to a different model. Use a model identifier your
-provider actually accepts; PatchBench does not bundle model weights or provider
-access, and does not claim every model works with this adapter.
+For an existing CLI, start with the [short host walkthrough](#already-have-claude-code-run-it-with-patchbench)
+and its bare-mode authentication check. The adapter name identifies the harness,
+not necessarily the model: compatible gateways may route it to a different model.
+Use a model identifier your provider accepts.
 
-Prepare a literal export file **outside the repository**, readable only by you:
+For advanced API/gateway configuration, prepare a literal export file **outside
+the repository**, readable only by you. It is optional for host runs using allowed
+environment credentials, but **required for containerized Claude Code**, with an
+explicit nonempty credential; containers do not reuse your host subscription login.
 
 ```bash
 export PROVIDER_ENV="$HOME/.config/patchbench/provider-env.sh"

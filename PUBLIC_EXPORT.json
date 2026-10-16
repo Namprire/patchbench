@@ -18,7 +18,7 @@
     },
     {
       "path": "README.md",
-      "sha256": "9c45d6412e6cee1b6b12bd7f24cda9324167f4902f66d9a202ceab8c5ecdefd4"
+      "sha256": "4553e0c8bbcc62a50f15f7574c6cfc2c92cace6804f6a20d25bec24d534693be"
     },
     {
       "path": "THIRD_PARTY_NOTICES.txt",
@@ -799,5 +799,5 @@
   ],
   "publication_approved": false,
   "schema_version": 1,
-  "tree_sha256": "f8af38242905907b73d679b46000872fb969851f587ee604545218229b01fa93"
+  "tree_sha256": "a181676cea3e45c7330ff4491ca291d83a895b3d4b656fd61652c62c5b18bbb2"
 }
