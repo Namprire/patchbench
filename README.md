@@ -15,7 +15,11 @@ three original synthetic examples immediately, then construct your own benchmark
 from repositories you can access. The examples demonstrate the method; their
 controls are **not measurements of model performance**.
 
-![PatchBench acquisition, construction, solving and evaluation workflow](docs/assets/readme/workflow.svg)
+![PatchBench Build and Run demo](docs/assets/readme/build-run-demo.gif)
+
+The original recording demonstrates the Build workspace in simulation mode.
+Its case labels are illustrative interface context; it does not release those
+benchmark cases. Use the synthetic examples below for runnable public inputs.
 
 ## Quick Start
 
@@ -401,6 +405,11 @@ private CERN research scores cannot be reconstructed from this synthetic release
 
 ## Research Console
 
+![PatchBench Research Console](docs/assets/readme/overview.jpg)
+
+*Original console overview, retained as an interface illustration rather than a
+public benchmark result. The runnable release uses the synthetic examples below.*
+
 The React console is a read-only viewer by default. Its public sample contains
 **three synthetic cases and six gold/dummy control records**, with fixed illustrative
 timestamps and timings. It contains no private dashboard snapshot or model scores.
@@ -413,6 +422,10 @@ timestamps and timings. It contains no private dashboard snapshot or model score
 | Compare | Two-to-four-run comparisons on consistent inputs |
 | Cases | Issue, safe metadata, validation state and linked attempts |
 | Build | Acquisition/construction flow, generated CLI commands and labeled UI simulation |
+
+![PatchBench Build workspace](docs/assets/readme/build-workflow.jpg)
+
+*Configure the case, agent, prompt and execution stages in the Build workspace.*
 
 From the project root:
 

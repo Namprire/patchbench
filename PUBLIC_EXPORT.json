@@ -18,7 +18,7 @@
     },
     {
       "path": "README.md",
-      "sha256": "4e8429374f279ac6104c703c85c9be0df6ffd6cd58090cf988ec454959e52661"
+      "sha256": "9c45d6412e6cee1b6b12bd7f24cda9324167f4902f66d9a202ceab8c5ecdefd4"
     },
     {
       "path": "THIRD_PARTY_NOTICES.txt",
@@ -33,8 +33,16 @@
       "sha256": "dc69a433c5398146f2a262e4e68fedd6aa7471458cd7c1778aff5ffa2e8c8a1d"
     },
     {
-      "path": "docs/assets/readme/workflow.svg",
-      "sha256": "186389f027c82d3e187cc153b1fac8aa721c836c4e922e3fb0975ae10ad3c56b"
+      "path": "docs/assets/readme/build-run-demo.gif",
+      "sha256": "f9077d6911c16dce48a241c448741b3b3e1a9e937e080e9cd1e27d44e10c19f5"
+    },
+    {
+      "path": "docs/assets/readme/build-workflow.jpg",
+      "sha256": "93febd43e02e095770b1a2718f50e0ebed6d7f19f50282b05c5e8d770aef4137"
+    },
+    {
+      "path": "docs/assets/readme/overview.jpg",
+      "sha256": "14f3b38557c68849b2c6aeae66c34d4d61352d77c4c0864e4392fcb3073fdd9a"
     },
     {
       "path": "frontend/.dockerignore",
@@ -791,5 +799,5 @@
   ],
   "publication_approved": false,
   "schema_version": 1,
-  "tree_sha256": "46fac2f7d6735bb0790a1163b7d472e8b2657892873072bd8d56d93beac6b8a0"
+  "tree_sha256": "f8af38242905907b73d679b46000872fb969851f587ee604545218229b01fa93"
 }
