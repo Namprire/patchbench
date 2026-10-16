@@ -9,12 +9,16 @@
       "sha256": "ac229bde2e228c5496174f50288a59b03e238d900951ec4dd103dc2e100773b7"
     },
     {
+      "path": "LICENSE.txt",
+      "sha256": "113aa2b84bbc053eab573ecd911b211d99d6495e1ce3e1855de4c9f0d586ce49"
+    },
+    {
       "path": "PUBLICATION.md",
-      "sha256": "179c9057d2a0dd581381a82789a248741cd17ef1d7a3bda7ff18b06b388b48ec"
+      "sha256": "17ca0cf3877321de418d81bce859f6d29b2c285ff35efcb2b1ef19e5d551c8fa"
     },
     {
       "path": "README.md",
-      "sha256": "18737a1958a6b5a05b67976410d4b390a1f9ded71727a258f75e81de6804b428"
+      "sha256": "90dcf5fe4f2758129922b00303cc51af301e634129b031187aea986c8a0d21b9"
     },
     {
       "path": "agents/mirror-rucio-qwen-v1.yaml",
@@ -747,5 +751,5 @@
   ],
   "publication_approved": false,
   "schema_version": 1,
-  "tree_sha256": "1f888e7a510c13f69f06b0d23691fb3d95b102ef84b2a7a8e718b64f433093f5"
+  "tree_sha256": "ed6b28b5eec70c1aa5f0c4620b15321f9653f0b42ca44762d527890160f1e4d6"
 }

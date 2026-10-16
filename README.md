@@ -146,3 +146,8 @@ Public contributions are reviewed downstream, then manually integrated into the
 private upstream source of truth. Do not request or include private cases, source,
 credentials, logs or experimental evidence. Upstream maintainers validate the
 shared change and produce a new reviewed export; repositories are never mirrored.
+
+## License
+
+Apache License 2.0, with the CERN privileges-and-immunities statement. See
+[LICENSE.txt](LICENSE.txt) and [publication status](PUBLICATION.md).
