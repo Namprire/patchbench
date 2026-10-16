@@ -436,12 +436,16 @@ Current artifacts beside the corpus are discovered automatically.
 corpora when calculating experiment metrics.
 
 The Build workspace's simulation demonstrates the interface. For actual local
-execution, open another terminal at the project root, activate the environment,
-and run:
+execution on the examples, use a terminal with the PatchBench environment
+activated and `PATCHBENCH_EXAMPLES` set to the same path as in Quick Start.
+Start the service from the corpus directory containing `cases/`:
 
 ```bash
-patchbench serve --dev
+(cd "$PATCHBENCH_EXAMPLES" && patchbench serve --dev)
 ```
+
+For a Rucio corpus constructed inside the PatchBench project, start the service
+from that project root instead. Its working directory selects the corpus.
 
 The execution service defaults to **127.0.0.1:8765**, validates loopback browser
 origins and serializes work. It is opt-in; `npm run dev` does not start it. Keep
