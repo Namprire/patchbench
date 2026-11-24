@@ -16,6 +16,7 @@ import tempfile
 import threading
 import time
 from dataclasses import dataclass, field, replace
+from contextlib import ExitStack
 from pathlib import Path
 from typing import Any, Callable
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
@@ -24,6 +25,7 @@ from patchbench.agents.base import AgentOutput
 from patchbench.catalog import read_metadata
 from patchbench.case import _resolve_case_artifact
 from patchbench.exceptions import PatchbenchError
+from patchbench.gitutils import extract_solver_patch
 from patchbench.mcp import (
     McpEvidenceCollector,
     McpRunConfig,
@@ -115,6 +117,8 @@ class _EventState:
     input_tokens: int | None = None
     output_tokens: int | None = None
     cache_read_tokens: int | None = None
+    cache_creation_tokens: int | None = None
+    usage_snapshots: set[str] = field(default_factory=set)
     reported_cost_usd: float | None = None
     terminal_reason: str | None = None
     stop_reason: str | None = None
@@ -172,8 +176,14 @@ class ClaudeCodeAgent:
         mcp_config: McpRunConfig | None = None,
         ca_file: str | Path | None = None,
         max_budget_usd: float | None = None,
+        login_dir: str | Path | None = None,
     ) -> None:
         self.env_file = Path(env_file).expanduser().resolve() if env_file else None
+        self.login_dir = Path(login_dir).expanduser().resolve() if login_dir else None
+        if self.login_dir is not None and self.env_file is not None:
+            raise PatchbenchError("Use either a Claude login directory or a provider env file")
+        if self.login_dir is not None and self.login_dir.is_relative_to(Path(__file__).resolve().parents[3]):
+            raise PatchbenchError("Claude login directory must be outside the project")
         self.timeout_seconds = timeout_seconds
         self.live_output = live_output
         self.requested_model = requested_model
@@ -201,6 +211,35 @@ class ClaudeCodeAgent:
         issue_path = _resolve_case_artifact(case_dir, raw["problem_statement"], "problem_statement")
         return issue_path.read_text(encoding="utf-8")
 
+    def _benchmark_model_environment(self) -> dict[str, str]:
+        """Keep aliases and default subagents on an explicitly selected model ID."""
+        model = self.requested_model
+        if not model or model.split("[", 1)[0] in {
+            "default", "best", "opus", "opusplan", "sonnet", "haiku", "fable",
+        }:
+            # Preserve intentional alias/plan routing rather than mapping an
+            # alias back to itself. Benchmark comparisons should use full IDs.
+            return {}
+        environment = {
+            "ANTHROPIC_DEFAULT_OPUS_MODEL": model,
+            "ANTHROPIC_DEFAULT_SONNET_MODEL": model,
+            "ANTHROPIC_DEFAULT_HAIKU_MODEL": model,
+            "ANTHROPIC_DEFAULT_FABLE_MODEL": model,
+            "CLAUDE_CODE_SUBAGENT_MODEL": model,
+        }
+        context_limits = {
+            "ibm-granite/granite-4.1-3b": 65536,
+            "Microsoft/Phi-4-mini-instruct": 16384,
+            "google/gemma-4-E4B-it": 131072,
+            "RedHatAI/Mistral-Small-3.2-24B-Instruct-2506-FP8": 128000,
+            "Qwen/Qwen3.6-35B-A3B-FP8": 262144,
+        }
+        if model in context_limits:
+            environment["CLAUDE_CODE_MAX_CONTEXT_TOKENS"] = str(context_limits[model])
+        if model == "Microsoft/Phi-4-mini-instruct":
+            environment["CLAUDE_CODE_MAX_OUTPUT_TOKENS"] = "2048"
+        return environment
+
     def _agent_environment(self, *, isolated_home: Path | None = None) -> dict[str, str]:
         env = {
             key: value
@@ -218,6 +257,13 @@ class ClaudeCodeAgent:
                 "LANG": "C.UTF-8",
                 "CLAUDE_CONFIG_DIR": str(isolated_home / ".claude"),
             }
+        if self.login_dir is not None:
+            if isolated_home is not None:
+                raise PatchbenchError("Isolated test-generation sessions cannot use a solver login")
+            env = {key: value for key, value in env.items()
+                   if not key.startswith(("ANTHROPIC_", "CLAUDE_"))}
+            env["CLAUDE_CONFIG_DIR"] = str(self.login_dir)
+            self.container_environment()  # Validate native credentials, without exporting them.
         if self.env_file is not None:
             if not self.env_file.is_file():
                 raise FileNotFoundError(f"Agent env file does not exist: {self.env_file}")
@@ -240,6 +286,7 @@ class ClaudeCodeAgent:
                     "ANTHROPIC_MODEL", "ANTHROPIC_CUSTOM_MODEL_OPTION",
                     "ANTHROPIC_DEFAULT_OPUS_MODEL", "ANTHROPIC_DEFAULT_SONNET_MODEL",
                     "ANTHROPIC_DEFAULT_HAIKU_MODEL", "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC",
+                    "CLAUDE_CODE_EFFORT_LEVEL",
                     "NODE_EXTRA_CA_CERTS", "SSL_CERT_FILE", "SSL_CERT_DIR",
                     "HTTP_PROXY", "HTTPS_PROXY", "NO_PROXY", "http_proxy", "https_proxy", "no_proxy",
                 }
@@ -252,10 +299,11 @@ class ClaudeCodeAgent:
 
         if self.requested_model is None:
             self.requested_model = env.get("ANTHROPIC_MODEL") or None
+        env.update(self._benchmark_model_environment())
         self.provider_base_url_host = _sanitized_url_host(
             env.get("ANTHROPIC_BASE_URL") or env.get("ANTHROPIC_API_URL")
         )
-        self.provider = _provider_name(self.provider_base_url_host)
+        self.provider = "claude-login" if self.login_dir is not None else _provider_name(self.provider_base_url_host)
         return env
 
     def container_environment(self) -> dict[str, str]:
@@ -265,6 +313,31 @@ class ClaudeCodeAgent:
         container sources the same strictly literal assignment file so these
         values exactly match the redaction metadata.
         """
+        if self.login_dir is not None:
+            # These values are used only for redaction, never passed as env vars.
+            # Native Claude Code remains responsible for login and refresh.
+            try:
+                credentials = json.loads((self.login_dir / ".credentials.json").read_text())
+            except (OSError, ValueError):
+                raise PatchbenchError("Claude login credentials unavailable; sign in to the dedicated login directory first") from None
+            secrets: dict[str, str] = {}
+
+            def collect(value):
+                if isinstance(value, dict):
+                    for key, item in value.items():
+                        if is_secret_key(key) and isinstance(item, str) and item:
+                            secrets[f"LOGIN_SECRET_{len(secrets)}"] = item
+                        else:
+                            collect(item)
+                elif isinstance(value, list):
+                    for item in value:
+                        collect(item)
+
+            collect(credentials)
+            if not secrets:
+                raise PatchbenchError("No supported file-based Claude login found in the login directory")
+            self.provider = "claude-login"
+            return secrets
         if self.env_file is None:
             raise PatchbenchError("Containerized Claude Code requires an env file")
         values = parse_literal_env_file(self.env_file, label="Claude")
@@ -275,6 +348,15 @@ class ClaudeCodeAgent:
         environment = self._agent_environment()
         environment.update(self.mcp_config.redaction_environment())
         return environment
+
+    def needs_kimi_compat(self) -> bool:
+        return (
+            self.provider_base_url_host == "hub.nhr.fau.de"
+            and (self.requested_model or "").lower() in {
+                "moonshotai/kimi-k2.6",
+                "redhatai/mistral-small-3.2-24b-instruct-2506-fp8",
+            }
+        )
 
     def container_command(self, *, system_prompt: str | None = None) -> str:
         """Return the fixed in-container Claude invocation.
@@ -295,6 +377,13 @@ class ClaudeCodeAgent:
             "--max-turns",
             str(self.max_turns),
         ]
+        if self.login_dir is not None:
+            if self.mcp_config.enabled:
+                raise PatchbenchError("Claude login mode currently supports coding cases without MCP only")
+            command.remove("--bare")
+            # Retain auth and managed policy, while suppressing user/project
+            # customizations that bare mode previously excluded.
+            command.extend(["--safe-mode", "--setting-sources", "", "--strict-mcp-config"])
         if self.requested_model:
             command.extend(["--model", self.requested_model])
         if self.max_budget_usd is not None:
@@ -311,8 +400,21 @@ class ClaudeCodeAgent:
             )
         if system_prompt:
             command.extend(["--append-system-prompt", system_prompt])
+        if self.needs_kimi_compat():
+            command = ["python3", "/run/patchbench/kimi_compat.py", *command]
         rendered = " ".join(shlex.quote(part) for part in command)
-        setup = "set -a; . /run/patchbench/claude-env.sh; set +a; "
+        setup = (
+            "unset ANTHROPIC_API_KEY ANTHROPIC_AUTH_TOKEN ANTHROPIC_BASE_URL "
+            "ANTHROPIC_API_URL CLAUDE_CODE_OAUTH_TOKEN ANTHROPIC_PROFILE "
+            "CLAUDE_CODE_USE_BEDROCK CLAUDE_CODE_USE_VERTEX CLAUDE_CODE_USE_FOUNDRY; "
+            "export CLAUDE_CONFIG_DIR=/run/patchbench/claude-login; "
+            if self.login_dir is not None else
+            "set -a; . /run/patchbench/claude-env.sh; set +a; "
+        )
+        # The container sources the provider file independently of the host
+        # environment, so apply the same model overrides after that source.
+        for key, value in self._benchmark_model_environment().items():
+            setup += f"export {key}={shlex.quote(value)}; "
         if self.ca_file is not None:
             setup += "export NODE_EXTRA_CA_CERTS=/run/patchbench/provider-ca.pem; "
         return setup + f'exec {rendered} < "$PATCHBENCH_PROMPT_FILE"'
@@ -329,6 +431,7 @@ class ClaudeCodeAgent:
         state = self._new_event_state()
         for line in stdout.splitlines():
             self._observe_event(line, state, 0.0)
+        _finalize_usage(state, timed_out=timed_out)
         termination_reason = (
             "wall_clock_timeout"
             if timed_out
@@ -371,6 +474,7 @@ class ClaudeCodeAgent:
             "input_tokens": state.input_tokens,
             "output_tokens": state.output_tokens,
             "cache_read_tokens": state.cache_read_tokens,
+            "cache_creation_tokens": state.cache_creation_tokens,
             "reported_cost_usd": state.reported_cost_usd,
             "partial_patch_captured": partial_patch
             and termination_reason in {"wall_clock_timeout", "max_turns", "incomplete_response"},
@@ -460,24 +564,13 @@ class ClaudeCodeAgent:
         self.model = self.actual_model
         self.model_source = result.state.model_source
 
-        run_command(["git", "add", "-N", "--all"], cwd=solving_worktree)
-        diff = run_command(
-            [
-                "git",
-                "diff",
-                "HEAD",
-                "--binary",
-                "--",
-                ".",
-                ":(exclude)agent.patch",
-                ":(exclude)trajectory.log",
-                ":(exclude)agent_events.jsonl",
-                ":(exclude)agent_debug.log",
-            ],
-            cwd=solving_worktree,
+        patch_text = extract_solver_patch(
+            solving_worktree,
+            base_commit,
+            exclude_paths=("agent.patch", "trajectory.log", "agent_events.jsonl", "agent_debug.log"),
         )
         patch_text = redact_secrets(
-            diff.stdout, self.mcp_config.redaction_environment()
+            patch_text, self.mcp_config.redaction_environment()
         )
         if result.termination_reason == "completed" and not patch_text.strip() and result.state.tool_event_count == 0:
             result = replace(result, termination_reason="no_tool_activity")
@@ -524,6 +617,7 @@ class ClaudeCodeAgent:
             "input_tokens": result.state.input_tokens,
             "output_tokens": result.state.output_tokens,
             "cache_read_tokens": result.state.cache_read_tokens,
+            "cache_creation_tokens": result.state.cache_creation_tokens,
             "reported_cost_usd": result.state.reported_cost_usd,
             "partial_patch_captured": partial,
             "evaluation_skipped": result.termination_reason
@@ -605,6 +699,11 @@ class ClaudeCodeAgent:
             if isolated and self.mcp_config.enabled:
                 raise PatchbenchError("Isolated prompt execution cannot enable MCP")
             env = self._agent_environment(isolated_home=workspace / ".home") if isolated else self._agent_environment()
+            if self.login_dir is not None and self.mcp_config.enabled:
+                # Older CLIs otherwise snapshot tools while stdio MCP is still
+                # pending. Wait for this explicit server before the first turn.
+                env["MCP_CONNECTION_NONBLOCKING"] = "0"
+                env["MCP_CONNECT_TIMEOUT_MS"] = "30000"
         except (OSError, UnicodeError, PatchbenchError) as exc:
             return ClaudePromptOutput("", (), f"Failed to prepare Claude Code: {exc}", False, {})
 
@@ -631,6 +730,18 @@ class ClaudeCodeAgent:
         ]
         if self.requested_model:
             command.extend(["--model", self.requested_model])
+        if self.login_dir is not None:
+            command.remove("--bare")
+            command.extend(["--setting-sources", ""])
+            if self.mcp_config.enabled:
+                # Safe mode suppresses even explicitly configured MCP servers.
+                # Keep only the benchmark MCP; built-in tools remain disabled.
+                command.extend(["--disable-slash-commands", "--settings", json.dumps({
+                    "disableAllHooks": True, "autoMemoryEnabled": False,
+                    "claudeMdExcludes": ["**"],
+                })])
+            else:
+                command.append("--safe-mode")
         if output_schema is not None:
             command.extend(["--json-schema", json.dumps(output_schema, ensure_ascii=False, allow_nan=False)])
         if self.max_budget_usd is not None:
@@ -638,8 +749,12 @@ class ClaudeCodeAgent:
         if isolated:
             command.extend(["--settings", "{}", "--setting-sources", ""])
         events_path = workspace / "agent_events.jsonl"
-        if self.mcp_config.enabled or isolated:
-            with tempfile.TemporaryDirectory(prefix="patchbench-mcp-") as directory:
+        with ExitStack() as stack:
+            if self.login_dir is not None:
+                from patchbench.containers import _claude_login_mount
+                stack.enter_context(_claude_login_mount(self.login_dir))
+            if self.mcp_config.enabled or isolated or self.login_dir is not None:
+                directory = stack.enter_context(tempfile.TemporaryDirectory(prefix="patchbench-mcp-"))
                 config_path = Path(directory) / "mcp.json"
                 write_mcp_config(config_path, self.mcp_config)
                 result = self._run_claude(
@@ -649,8 +764,8 @@ class ClaudeCodeAgent:
                     env,
                     events_path=events_path,
                 )
-        else:
-            result = self._run_claude(command, prompt, workspace, env, events_path=events_path)
+            else:
+                result = self._run_claude(command, prompt, workspace, env, events_path=events_path)
 
         events: list[dict[str, Any]] = []
         for line in result.stdout.splitlines():
@@ -686,6 +801,7 @@ class ClaudeCodeAgent:
             "input_tokens": result.state.input_tokens,
             "output_tokens": result.state.output_tokens,
             "reported_cost_usd": result.state.reported_cost_usd,
+            "cache_creation_tokens": result.state.cache_creation_tokens,
             "runtime_seconds": result.duration_seconds,
             "output_format": output_format,
             "agent_command_sanitized": " ".join(self._sanitized_command(result.command)),
@@ -741,11 +857,21 @@ class ClaudeCodeAgent:
         events_path: Path | None = None,
         debug_path: Path | None = None,
     ) -> _ProcessResult:
+        if self.needs_kimi_compat():
+            command = [sys.executable, str(Path(__file__).with_name("kimi_compat.py")), *command]
         events_path = events_path or cwd / "agent_events.jsonl"
         events_path.write_text("", encoding="utf-8")
         state = self._new_event_state()
         sanitization_env = dict(env)
         sanitization_env.update(self.mcp_config.redaction_environment())
+
+        def refresh_login_redactions():
+            if self.login_dir is not None:
+                for value in self.container_environment().values():
+                    if value not in sanitization_env.values():
+                        sanitization_env[f"LOGIN_SECRET_{len(sanitization_env)}"] = value
+
+        refresh_login_redactions()
         started = time.monotonic()
         debug_lines: list[str] = []
 
@@ -849,6 +975,7 @@ class ClaudeCodeAgent:
                         if process.poll() is not None and closed_streams == len(readers):
                             break
                         continue
+                    refresh_login_redactions()
                     sanitized = (
                         _sanitize_event_line(line, sanitization_env, state.mcp)
                         if stream_name == "stdout"
@@ -895,6 +1022,7 @@ class ClaudeCodeAgent:
                     stream_name, line = output_queue.get_nowait()
                     if line is None:
                         continue
+                    refresh_login_redactions()
                     sanitized = (
                         _sanitize_event_line(line, sanitization_env, state.mcp)
                         if stream_name == "stdout"
@@ -912,6 +1040,7 @@ class ClaudeCodeAgent:
                         stderr_parts.append(sanitized)
 
         duration = time.monotonic() - started
+        _finalize_usage(state, timed_out=termination_reason == "wall_clock_timeout")
         if termination_reason == "completed":
             termination_reason = _terminal_reason(state, process.returncode)
         if interrupted:
@@ -1010,8 +1139,49 @@ class ClaudeCodeAgent:
         usage = event.get("usage")
         if not isinstance(usage, dict) and isinstance(message, dict):
             usage = message.get("usage")
+        if event_type == "result" and isinstance(model_usage, dict) and model_usage:
+            entries = list(model_usage.values())
+            if all(
+                isinstance(entry, dict)
+                and all(
+                    type(entry.get(key)) is int and entry[key] >= 0
+                    for key in ("inputTokens", "outputTokens")
+                )
+                for entry in entries
+            ):
+                # modelUsage covers the session; usage may cover only its last request.
+                # Retain usage's cache fields and the existing cost extraction below.
+                usage = dict(usage) if isinstance(usage, dict) else {}
+                usage["input_tokens"] = sum(entry["inputTokens"] for entry in entries)
+                usage["output_tokens"] = sum(entry["outputTokens"] for entry in entries)
+            if all(
+                isinstance(entry, dict)
+                and type(entry.get("cacheCreationInputTokens")) is int
+                and entry["cacheCreationInputTokens"] >= 0
+                for entry in entries
+            ):
+                usage = dict(usage) if isinstance(usage, dict) else {}
+                usage["cache_creation_input_tokens"] = sum(
+                    entry["cacheCreationInputTokens"] for entry in entries
+                )
         if isinstance(usage, dict):
-            _record_usage(state, usage, authoritative=event.get("type") == "result")
+            # Multiple content blocks can repeat one assistant message's usage.
+            # Without a clear message identity, retain the existing accumulation.
+            usage_key = None
+            if event_type == "assistant" and isinstance(message, dict):
+                message_id = message.get("id")
+                parent_id = event.get("parent_tool_use_id")
+                if (
+                    isinstance(message_id, str) and message_id.strip()
+                    and (parent_id is None or isinstance(parent_id, str) and parent_id.strip())
+                ):
+                    usage_key = json.dumps(
+                        [state.session_id, parent_id, message_id, usage], sort_keys=True
+                    )
+            if usage_key is None or usage_key not in state.usage_snapshots:
+                _record_usage(state, usage, authoritative=event_type == "result")
+                if usage_key is not None:
+                    state.usage_snapshots.add(usage_key)
         cost = event.get("total_cost_usd")
         if isinstance(cost, (int, float)):
             state.reported_cost_usd = float(cost)
@@ -1212,13 +1382,26 @@ class ClaudeCodeAgent:
         path.write_text("\n".join(lines), encoding="utf-8")
 
 
+def _finalize_usage(state: _EventState, *, timed_out: bool) -> None:
+    """Without a final result, timeout zeros cannot establish zero consumption."""
+    if timed_out and state.terminal_reason is None:
+        for name in ("input_tokens", "output_tokens"):
+            if getattr(state, name) == 0:
+                setattr(state, name, None)
+
+
 def _record_usage(state: _EventState, usage: dict[str, Any], *, authoritative: bool) -> None:
     fields = {
         "input_tokens": usage.get("input_tokens"),
         "output_tokens": usage.get("output_tokens"),
         "cache_read_tokens": usage.get("cache_read_input_tokens", usage.get("cache_read_tokens")),
+        "cache_creation_tokens": usage.get(
+            "cache_creation_input_tokens", usage.get("cache_creation_tokens")
+        ),
     }
     for name, value in fields.items():
+        if name == "cache_creation_tokens" and (type(value) is not int or value < 0):
+            continue
         if not isinstance(value, int):
             continue
         current = getattr(state, name)
@@ -1365,6 +1548,7 @@ def _sanitize_event_line(
             "input_tokens",
             "output_tokens",
             "cache_read_tokens",
+            "cache_creation_tokens",
             "cache_read_input_tokens",
             "cache_creation_input_tokens",
             "inputtokens",

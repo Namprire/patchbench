@@ -75,6 +75,14 @@ def green(result: dict) -> bool:
             and all(t['status'] in ('PASS', 'SKIP') for t in result['report']['tests'].values()))
 
 
+def reference_tests_pass(result: dict, reference: dict) -> bool:
+    """Require every frozen reference outcome; extra passing tests are allowed."""
+    observed = result['report']['tests']
+    return bool(reference) and green(result) and all(
+        observed.get(name) == outcome for name, outcome in reference.items()
+    )
+
+
 def differential(reference: dict, bug: dict) -> dict:
     if not green(reference):
         return dict(reason='baseline_not_green', f2p_tests=[], p2p_tests=[])

@@ -112,11 +112,11 @@ def build_parser() -> argparse.ArgumentParser:
     )
 
     github_parser = subparsers.add_parser("ingest-github-pr", help="Import a merged Rucio GitHub PR as a frozen draft")
-    github_parser.add_argument("--github-repo", default="rucio/rucio", choices=["rucio/rucio"])
+    github_parser.add_argument("--github-repo", default="rucio/rucio", choices=["rucio/rucio", "DIRACGrid/DIRAC"])
     github_parser.add_argument("--pr", required=True, type=int, dest="pr_number")
     github_parser.add_argument("--case-id", required=True)
     github_parser.add_argument("--repo-path", required=True)
-    github_parser.add_argument("--repository", default="rucio", choices=["rucio"])
+    github_parser.add_argument("--repository", default="rucio", choices=["rucio", "dirac"])
     github_parser.add_argument("--output", required=True, dest="output_path")
 
     discover_parser = subparsers.add_parser(
@@ -263,6 +263,8 @@ def build_parser() -> argparse.ArgumentParser:
         help="Disable in-place rendering and write normal line-oriented progress logs",
     )
     run_parser.set_defaults(live=None)
+    run_parser.add_argument("--progress-file", type=Path,
+                            help="Write atomic display status for a shared live viewer")
     run_parser.add_argument(
         "--agent-timeout-seconds",
         type=int,
@@ -287,6 +289,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--container",
         action="store_true",
         help="Evaluate in Podman; also containerize agents that support it",
+    )
+    run_parser.add_argument(
+        "--agent-login-dir",
+        metavar="PATH",
+        help="Dedicated external Claude SSO login directory (container coding runs only; replaces --agent-env-file)",
     )
     run_parser.add_argument(
         "--agent-env-file",
@@ -447,6 +454,7 @@ def build_parser() -> argparse.ArgumentParser:
         help="Run one answer-only Claude/LanDB MCP retrieval task against fake REST",
     )
     answer_parser.add_argument("case_dir", help="A case_type: landb_answer directory")
+    answer_parser.add_argument("--agent-login-dir", help="Dedicated external Claude SSO login directory")
     answer_parser.add_argument(
         "--condition", required=True, choices=["none", "curated", "broad"]
     )
@@ -804,6 +812,7 @@ def _dispatch(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
                 agent=args.agent,
                 max_turns=(args.agent_max_turns if args.agent == "claude-code" else None),
                 live=args.live,
+                status_path=args.progress_file,
             )
             display.start()
             try:
@@ -813,6 +822,7 @@ def _dispatch(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
                     args.run_id,
                     container=args.container,
                     agent_env_file=args.agent_env_file,
+                    agent_login_dir=args.agent_login_dir,
                     agent_ca_file=args.agent_ca_file,
                     agent_image=args.agent_image,
                     agent_command=args.agent_command,
@@ -923,6 +933,7 @@ def _dispatch(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
                 run_id=args.run_id,
                 agent_env_file=args.agent_env_file,
                 agent_model=args.agent_model,
+                agent_login_dir=args.agent_login_dir,
                 timeout_seconds=args.timeout_seconds,
                 max_turns=args.agent_max_turns,
                 artifacts_root=args.artifacts_root,

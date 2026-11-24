@@ -3,11 +3,26 @@ from __future__ import annotations
 import os
 import re
 import signal
+import shutil
 import subprocess
 import time
 from pathlib import Path
 
+from patchbench.exceptions import PatchbenchError
 from patchbench.models import CommandResult
+
+
+def ensure_disk_space(path: Path, minimum_bytes: int = 2 * 1024**3) -> None:
+    """Refuse new work when its filesystem has less than 2 GiB free."""
+    path = path.resolve()
+    while not path.exists():
+        path = path.parent
+    free = shutil.disk_usage(path).free
+    if free < minimum_bytes:
+        raise PatchbenchError(
+            f"Insufficient free disk space at {path}: {free / 1024**3:.2f} GiB free; "
+            f"at least {minimum_bytes / 1024**3:g} GiB required"
+        )
 
 
 _SECRET_KEY = re.compile(
@@ -17,6 +32,8 @@ _SECRET_KEY = re.compile(
 
 
 def is_secret_key(key: str) -> bool:
+    if key.upper() in {"CLAUDE_CODE_MAX_CONTEXT_TOKENS", "CLAUDE_CODE_MAX_OUTPUT_TOKENS"}:
+        return False  # Numeric runtime limits, not authentication tokens.
     return bool(_SECRET_KEY.search(key))
 
 

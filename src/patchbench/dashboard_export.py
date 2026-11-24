@@ -447,6 +447,7 @@ def _normalized_run_view(
         "input_tokens": _optional_int(merged.get("input_tokens")),
         "output_tokens": _optional_int(merged.get("output_tokens")),
         "cache_read_tokens": _optional_int(merged.get("cache_read_tokens")),
+        "cache_creation_tokens": _optional_int(merged.get("cache_creation_tokens")),
         "reported_cost_usd": _optional_float(merged.get("reported_cost_usd")),
         "artifacts": artifacts,
         "raw_sanitized_metadata": _sanitize_value(merged),

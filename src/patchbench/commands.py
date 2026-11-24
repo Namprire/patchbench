@@ -39,15 +39,19 @@ from patchbench.gitutils import (
     diff_stats,
     ensure_commit_exists,
     ensure_git_repo,
+    evaluation_test_patch,
+    extract_solver_patch,
     temporary_checkout,
     temporary_worktree,
 )
 from patchbench.io import write_json
+from patchbench.prometheus_usage import begin_monitoring
+from patchbench.podman_backend import container_backend_metadata
 from patchbench.mcp import McpRunConfig, disabled_mcp_config, landb_mcp_config
 from patchbench.mcp import write_mcp_config, write_mcp_evidence
 from patchbench.models import PatchComparison, EvaluationResult, RunResult, ValidationResult
 from patchbench.report import generate_report
-from patchbench.runner import redact_secrets, run_command, sanitize_command, write_log
+from patchbench.runner import ensure_disk_space, redact_secrets, run_command, sanitize_command, write_log
 
 
 _PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -762,88 +766,88 @@ def evaluate_patch(case_dir: str | Path, patch: str | Path) -> EvaluationResult:
             agent_changed_files, agent_added_lines, agent_removed_lines = diff_stats(
                 worktree_path
             )
-            test_patch_applies, test_patch_error = apply_patch(
-                worktree_path, case.test_patch
-            )
-            if not test_patch_applies:
+            with evaluation_test_patch(
+                worktree_path, case.base_commit, case.test_patch
+            ) as (test_patch_applies, test_patch_error):
+                if not test_patch_applies:
+                    result = EvaluationResult(
+                        case_id=case.id,
+                        agent="",
+                        run_id="",
+                        prompt_mode="",
+                        patch_applied=True,
+                        resolved=False,
+                        f2p_passed=0,
+                        f2p_total=0,
+                        p2p_passed=0,
+                        p2p_total=0,
+                        runtime_seconds=0.0,
+                        files_changed=agent_changed_files,
+                        lines_added=agent_added_lines,
+                        lines_removed=agent_removed_lines,
+                        failure_mode="patch_failed",
+                        error=f"Failed to apply test patch: {test_patch_error}",
+                        artifacts={},
+                    )
+                    return _write_evaluation(result_path, result)
+
+                setup_error = _run_setup_commands(case, execution_cwd, case.logs_dir, prefix="eval_setup")
+                if setup_error is not None:
+                    result = EvaluationResult(
+                        case_id=case.id,
+                        agent="",
+                        run_id="",
+                        prompt_mode="",
+                        patch_applied=True,
+                        resolved=False,
+                        f2p_passed=0,
+                        f2p_total=0,
+                        p2p_passed=0,
+                        p2p_total=0,
+                        runtime_seconds=0.0,
+                        files_changed=[],
+                        lines_added=0,
+                        lines_removed=0,
+                        failure_mode="other",
+                        error=setup_error,
+                        artifacts={},
+                    )
+                    return _write_evaluation(result_path, result)
+
+                test_result = run_command(
+                    case.test_command,
+                    cwd=execution_cwd,
+                    env_overrides=case.env,
+                    timeout_seconds=case.timeout_seconds,
+                )
+
                 result = EvaluationResult(
                     case_id=case.id,
                     agent="",
                     run_id="",
                     prompt_mode="",
                     patch_applied=True,
-                    resolved=False,
+                    resolved=test_result.exit_code == 0,
                     f2p_passed=0,
                     f2p_total=0,
                     p2p_passed=0,
                     p2p_total=0,
-                    runtime_seconds=0.0,
+                    runtime_seconds=test_result.duration_seconds,
                     files_changed=agent_changed_files,
                     lines_added=agent_added_lines,
                     lines_removed=agent_removed_lines,
-                    failure_mode="patch_failed",
-                    error=f"Failed to apply test patch: {test_patch_error}",
+                    failure_mode=(
+                        FailureMode.TIMEOUT
+                        if test_result.timed_out
+                        else "tests_pass" if test_result.exit_code == 0 else "tests_failed"
+                    ),
+                    error=(
+                        f"Tests timed out after {case.timeout_seconds} seconds"
+                        if test_result.timed_out
+                        else None
+                    ),
                     artifacts={},
                 )
-                return _write_evaluation(result_path, result)
-
-            setup_error = _run_setup_commands(case, execution_cwd, case.logs_dir, prefix="eval_setup")
-            if setup_error is not None:
-                result = EvaluationResult(
-                    case_id=case.id,
-                    agent="",
-                    run_id="",
-                    prompt_mode="",
-                    patch_applied=True,
-                    resolved=False,
-                    f2p_passed=0,
-                    f2p_total=0,
-                    p2p_passed=0,
-                    p2p_total=0,
-                    runtime_seconds=0.0,
-                    files_changed=[],
-                    lines_added=0,
-                    lines_removed=0,
-                    failure_mode="other",
-                    error=setup_error,
-                    artifacts={},
-                )
-                return _write_evaluation(result_path, result)
-
-            test_result = run_command(
-                case.test_command,
-                cwd=execution_cwd,
-                env_overrides=case.env,
-                timeout_seconds=case.timeout_seconds,
-            )
-
-            result = EvaluationResult(
-                case_id=case.id,
-                agent="",
-                run_id="",
-                prompt_mode="",
-                patch_applied=True,
-                resolved=test_result.exit_code == 0,
-                f2p_passed=0,
-                f2p_total=0,
-                p2p_passed=0,
-                p2p_total=0,
-                runtime_seconds=test_result.duration_seconds,
-                files_changed=agent_changed_files,
-                lines_added=agent_added_lines,
-                lines_removed=agent_removed_lines,
-                failure_mode=(
-                    FailureMode.TIMEOUT
-                    if test_result.timed_out
-                    else "tests_pass" if test_result.exit_code == 0 else "tests_failed"
-                ),
-                error=(
-                    f"Tests timed out after {case.timeout_seconds} seconds"
-                    if test_result.timed_out
-                    else None
-                ),
-                artifacts={},
-            )
     except Exception as exc:
         result = EvaluationResult(
             case_id=case.id,
@@ -911,6 +915,7 @@ def run_agent(
     mcp_revision_dirty: bool | None = None,
     skip_evaluation: bool = False,
     run_config: dict[str, Any] | None = None,
+    agent_login_dir: str | Path | None = None,
 ) -> RunResult:
     """Run a solver, then evaluate its patch in a fresh checkout."""
     if not is_safe_path_component(run_id):
@@ -930,6 +935,22 @@ def run_agent(
         historical_baseline(case)
     if agent_env_file and agent_name != "claude-code":
         raise PatchbenchError("--agent-env-file is only supported by claude-code")
+    if agent_login_dir is not None:
+        if agent_name != "claude-code" or not container:
+            raise PatchbenchError("--agent-login-dir requires --agent claude-code --container")
+        if agent_env_file is not None:
+            raise PatchbenchError("Use either --agent-login-dir or --agent-env-file")
+        if mcp_server is not None:
+            raise PatchbenchError("Claude login mode currently supports coding cases without MCP only")
+        login_path = Path(agent_login_dir).expanduser().resolve()
+        try:
+            login_path.relative_to(_PROJECT_ROOT)
+        except ValueError:
+            pass
+        else:
+            raise PatchbenchError("Claude login directory must be outside the project")
+        if not login_path.is_dir():
+            raise PatchbenchError("Claude login directory not found; complete the separate SSO login first")
     if agent_ca_file is not None and agent_name != "claude-code":
         raise PatchbenchError("--agent-ca-file is only supported by claude-code")
     if agent_ca_file is not None and not container:
@@ -1019,11 +1040,11 @@ def run_agent(
                 "Claude Code requires claude-env.sh outside the project directory"
             )
     if container and agent_name == "claude-code":
-        if agent_env_file is None:
+        if agent_env_file is None and agent_login_dir is None:
             raise PatchbenchError(
                 "Containerized Claude Code requires --agent-env-file PATH to an external claude-env.sh"
             )
-        env_path = Path(agent_env_file).expanduser().resolve()
+        env_path = Path(agent_env_file).expanduser().resolve() if agent_env_file is not None else None
     provider_ca_path: Path | None = None
     provider_ca_sha256: str | None = None
     provider_ca_cert_count = 0
@@ -1063,6 +1084,8 @@ def run_agent(
             "env_file": agent_env_file,
             "timeout_seconds": effective_agent_timeout,
         }
+        if agent_login_dir is not None:
+            agent_kwargs["login_dir"] = login_path
         if mcp_config.enabled:
             agent_kwargs["mcp_config"] = mcp_config
         if provider_ca_path is not None:
@@ -1131,17 +1154,22 @@ def run_agent(
         "agent_ca_configured": provider_ca_path is not None,
         "agent_ca_sha256": provider_ca_sha256,
         "agent_ca_certificate_count": provider_ca_cert_count,
+        **(container_backend_metadata() if container else {}),
         **mcp_config.metadata(),
     }
     if use_container_solver and agent_name == "claude-code":
         metadata["agent_network"] = agent_network
-        metadata["agent_env_source"] = "external read-only claude-env.sh mount"
+        metadata["agent_env_source"] = (
+            "dedicated external Claude login directory"
+            if agent_login_dir is not None else "external read-only claude-env.sh mount"
+        )
     if use_container_solver:
         if not selected_image or not selected_command:
             raise PatchbenchError(f"Container agent {agent_name} requires an image and command")
         metadata["agent_image"] = selected_image
         metadata["agent_command_sanitized"] = sanitize_command(selected_command)
 
+    ensure_disk_space(case.runs_dir)
     ensure_case_output_dirs(case)
     run_dir = case.runs_dir / run_id
     legacy_run = case.case_dir / "runs" / run_id
@@ -1163,6 +1191,7 @@ def run_agent(
     if run_config is not None:
         write_json(run_dir / "run.config.json", run_config)
 
+    token_monitor = begin_monitoring(agent_env_file, agent_model) if agent_name == "claude-code" else None
     started = time.monotonic()
     agent_output = AgentOutput(None, "Agent did not run")
     solver_completed = False
@@ -1191,7 +1220,7 @@ def run_agent(
                     agent,
                     selected_image,
                     selected_command,
-                    Path(agent_env_file).expanduser().resolve(),
+                    Path(agent_env_file).expanduser().resolve() if agent_env_file is not None else None,
                     effective_agent_timeout,
                     agent_network,
                     progress,
@@ -1246,6 +1275,8 @@ def run_agent(
                     if artifact.exists():
                         shutil.copy(artifact, run_dir / artifact_name)
 
+        if token_monitor is not None:
+            token_monitor.stop()
         solver_completed = True
         metadata["model"] = getattr(agent, "model", None)
         # Score the submission available when a coding agent exhausts its
@@ -1663,6 +1694,8 @@ def run_agent(
         resolved=result.resolved,
         failure_mode=result.failure_mode,
     )
+    if token_monitor is not None:
+        metadata["litellm_prometheus"] = token_monitor.finish()
     write_json(metadata_path, metadata)
     _write_run_result(run_dir / "result.json", result)
     return result
@@ -1741,7 +1774,7 @@ def _run_claude_container_solver(
     agent,
     image: str,
     command: str,
-    env_file: Path,
+    env_file: Path | None,
     timeout_seconds: int,
     network: str,
     progress: ProgressCallback | None = None,
@@ -1816,6 +1849,9 @@ def _run_claude_container_solver(
                 network,
             )
             extra: dict[str, Any] = {}
+            if getattr(agent, "login_dir", None) is not None:
+                extra["login_dir"] = agent.login_dir
+                extra["refresh_redactions"] = agent.container_environment
             if progress is not None:
                 extra["progress_callback"] = on_container_output
             if mcp_config_path is not None:
@@ -1823,13 +1859,27 @@ def _run_claude_container_solver(
             if getattr(agent, "ca_file", None) is not None:
                 extra["provider_ca_path"] = agent.ca_file
             if getattr(case, 'case_dir', None):
-                settings = read_metadata(case.case_dir).get('historical_pr_tests', {})
+                raw = read_metadata(case.case_dir)
+                settings = raw.get('historical_pr_tests', {})
                 if settings.get('dependency_cache'):
                     from patchbench.historical_pr_tests import resolve_dependency_cache, cache_identity
                     cache = Path(resolve_dependency_cache(case.case_dir, settings))
                     if cache_identity(cache, solving_checkout) != settings.get('dependency_cache_digest'):
                         raise PatchbenchError('Historical solver dependency cache identity changed')
                     extra['dependency_cache'] = cache
+                elif case.repository_id == 'monolandb' and case.oracle_mode in {'existing_tests', 'existing_tests_with_regression'}:
+                    import json
+                    from patchbench.mirroring.environment import environment_digest
+                    from patchbench.historical_pr_tests import cache_identity
+                    settings = json.loads((case.case_dir / raw['benchmark']['environment_record']).read_text())
+                    if environment_digest(settings) != settings.get('environment_digest'):
+                        raise PatchbenchError('Environment digest mismatch')
+                    if settings.get('dependency_cache'):
+                        cache = Path(settings['dependency_cache']).expanduser().resolve()
+                        digest = cache_identity(cache, solving_checkout)
+                        if settings.get('dependency_cache_digest') and digest != settings['dependency_cache_digest']:
+                            raise PatchbenchError('Environment dependency cache identity mismatch')
+                        extra['dependency_cache'] = cache
             completed = run_claude_in_container(*arguments, **extra)
 
         sanitized_stdout = (
@@ -1846,23 +1896,22 @@ def _run_claude_container_solver(
             completed.interrupted,
         )
 
-        run_command(["git", "add", "-N", "--all"], cwd=solving_checkout)
-        diff = run_command(
-            ["git", "diff", "HEAD", "--binary", "--", "."], cwd=solving_checkout
-        )
+        events_path = run_dir / "agent_events.jsonl"
+        events_path.write_text(completed.stdout, encoding="utf-8")
+        patch_text = extract_solver_patch(solving_checkout, case.base_commit)
         # Never persist a credential that an agent accidentally wrote into the
         # checkout. This may make such a patch invalid, which is preferable to
         # leaking a credential into benchmark artifacts.
-        patch_text = redact_secrets(diff.stdout, environment)
+        patch_text = redact_secrets(patch_text, environment)
         (run_dir / "agent.patch").write_text(patch_text, encoding="utf-8")
-        events_path = run_dir / "agent_events.jsonl"
-        events_path.write_text(completed.stdout, encoding="utf-8")
         details = agent.container_execution_details(
             completed.stdout,
             completed.returncode,
             completed.timed_out,
             partial_patch=bool(patch_text.strip()),
         )
+        if extra.get('dependency_cache') is not None:
+            details.update(solver_dependency_cache_mode='private-overlay-v1', solver_maven_args='-o')
         write_mcp_evidence(run_dir / "mcp_activity.jsonl", agent.mcp_interactions)
         if completed.interrupted:
             details.update(
@@ -1888,7 +1937,11 @@ def _run_claude_container_solver(
             f"agent_timeout_seconds: {timeout_seconds}",
             "workspace: /workspace",
             "prompt_file: /run/patchbench/issue.md (read-only)",
-            "env_file: /run/patchbench/claude-env.sh (read-only; external source)",
+            (
+                "auth: dedicated Claude login directory (external; credential renewal enabled)"
+                if getattr(agent, "login_dir", None) is not None else
+                "env_file: /run/patchbench/claude-env.sh (read-only; external source)"
+            ),
             (
                 "provider_ca: /run/patchbench/provider-ca.pem (read-only; external source)"
                 if getattr(agent, "ca_file", None) is not None
@@ -1992,11 +2045,8 @@ def _run_container_solver(
                 timeout_seconds,
             )
 
-        run_command(["git", "add", "-N", "--all"], cwd=solving_checkout)
-        diff = run_command(
-            ["git", "diff", "HEAD", "--binary", "--", "."], cwd=solving_checkout
-        )
-        (run_dir / "agent.patch").write_text(diff.stdout, encoding="utf-8")
+        patch_text = extract_solver_patch(solving_checkout, case.base_commit)
+        (run_dir / "agent.patch").write_text(patch_text, encoding="utf-8")
         trajectory = [
             "=== Container Solver Execution ===",
             f"prompt_hash: {prompt_hash}",
@@ -2016,12 +2066,12 @@ def _run_container_solver(
             completed.stderr or "(empty)",
             "",
             "=== AGENT PATCH (git diff) ===",
-            diff.stdout or "(no changes)",
+            patch_text or "(no changes)",
             "",
         ]
         (run_dir / "trajectory.log").write_text("\n".join(trajectory), encoding="utf-8")
         if completed.timed_out or completed.interrupted:
-            partial_patch = bool(diff.stdout.strip())
+            partial_patch = bool(patch_text.strip())
             termination = "interrupted" if completed.interrupted else "timeout"
             detail = (
                 "interrupted_by_user"
@@ -2048,11 +2098,11 @@ def _run_container_solver(
         if completed.returncode != 0:
             detail = completed.stderr or completed.stdout or "unknown error"
             return AgentOutput(
-                run_dir / "agent.patch" if diff.stdout.strip() else None,
+                run_dir / "agent.patch" if patch_text.strip() else None,
                 f"Container solver failed with exit code {completed.returncode}: {detail}",
-                details={"partial_patch_captured": bool(diff.stdout.strip())},
+                details={"partial_patch_captured": bool(patch_text.strip())},
             )
-        if not diff.stdout.strip():
+        if not patch_text.strip():
             return AgentOutput(None, "Container solver produced no code changes")
         return AgentOutput(run_dir / "agent.patch", None)
 
@@ -2067,35 +2117,37 @@ def _evaluate_patch_host(case, patch_path: Path, run_dir: Path) -> _PatchEvaluat
         if not patch_applied:
             return _PatchEvaluation(False, False, f"Failed to apply agent patch: {patch_error}", [], 0, 0)
         files, added, removed = diff_stats(checkout)
-        hidden_applied, hidden_error = apply_patch(checkout, case.test_patch)
-        if not hidden_applied:
-            return _PatchEvaluation(True, False, f"Failed to apply test patch: {hidden_error}", files, added, removed)
-        cwd = _execution_cwd(checkout, case.workdir)
-        setup_error = _run_setup_commands(case, cwd, run_dir, prefix="run_setup")
-        if setup_error:
-            (run_dir / "test.log").write_text(setup_error + "\n", encoding="utf-8")
-            return _PatchEvaluation(
-                True, False, setup_error, files, added, removed, FailureMode.OTHER
+        with evaluation_test_patch(
+            checkout, case.base_commit, case.test_patch
+        ) as (hidden_applied, hidden_error):
+            if not hidden_applied:
+                return _PatchEvaluation(True, False, f"Failed to apply test patch: {hidden_error}", files, added, removed)
+            cwd = _execution_cwd(checkout, case.workdir)
+            setup_error = _run_setup_commands(case, cwd, run_dir, prefix="run_setup")
+            if setup_error:
+                (run_dir / "test.log").write_text(setup_error + "\n", encoding="utf-8")
+                return _PatchEvaluation(
+                    True, False, setup_error, files, added, removed, FailureMode.OTHER
+                )
+            test = run_command(
+                case.test_command,
+                cwd=cwd,
+                env_overrides=case.env,
+                timeout_seconds=case.timeout_seconds,
             )
-        test = run_command(
-            case.test_command,
-            cwd=cwd,
-            env_overrides=case.env,
-            timeout_seconds=case.timeout_seconds,
-        )
-        write_log(run_dir / "test.log", test)
-        if test.timed_out:
-            return _PatchEvaluation(
-                True,
-                False,
-                f"Tests timed out after {case.timeout_seconds} seconds",
-                files,
-                added,
-                removed,
-                FailureMode.TIMEOUT,
-            )
-        error = None if test.exit_code == 0 else f"Tests failed with exit code {test.exit_code}"
-        return _PatchEvaluation(True, test.exit_code == 0, error, files, added, removed)
+            write_log(run_dir / "test.log", test)
+            if test.timed_out:
+                return _PatchEvaluation(
+                    True,
+                    False,
+                    f"Tests timed out after {case.timeout_seconds} seconds",
+                    files,
+                    added,
+                    removed,
+                    FailureMode.TIMEOUT,
+                )
+            error = None if test.exit_code == 0 else f"Tests failed with exit code {test.exit_code}"
+            return _PatchEvaluation(True, test.exit_code == 0, error, files, added, removed)
 
 
 def _evaluate_patch_container(case, patch_path: Path, run_dir: Path) -> _PatchEvaluation:
@@ -2115,27 +2167,23 @@ def _evaluate_patch_container(case, patch_path: Path, run_dir: Path) -> _PatchEv
             (run_dir / "test.log").write_text(message + "\n", encoding="utf-8")
             return _PatchEvaluation(False, False, message, [], 0, 0)
         files, added, removed = diff_stats(checkout)
-        protected = set(read_metadata(case.case_dir).get('historical_pr_tests', {}).get('test_side_files', []))
-        changed_tests = sorted(protected.intersection(files))
-        if changed_tests:
-            message = "Agent patch changes protected test inputs: " + ", ".join(changed_tests)
-            (run_dir / "test.log").write_text(message + "\n", encoding="utf-8")
-            return _PatchEvaluation(True, False, message, files, added, removed)
-        applied, error = apply_patch(checkout, case.test_patch)
-        if not applied:
-            message = f"Failed to apply test patch: {error}"
-            (run_dir / "test.log").write_text(message + "\n", encoding="utf-8")
-            return _PatchEvaluation(True, False, message, files, added, removed, FailureMode.OTHER)
-        status_path = root / "status"
-        cwd = f"repo/{case.workdir}" if case.workdir else "repo"
-        setup_script = ""
-        for setup in case.setup_commands:
-            setup_script += (
-                f"{_bounded_shell_command(shlex.join(setup), case.timeout_seconds)}\n"
-                "rc=$?\n"
-                "if [ $rc -ne 0 ]; then echo SETUP_EXIT_CODE=$rc >> /host/status; exit 0; fi\n"
-            )
-        script = f"""
+        with evaluation_test_patch(
+            checkout, case.base_commit, case.test_patch
+        ) as (applied, error):
+            if not applied:
+                message = f"Failed to apply test patch: {error}"
+                (run_dir / "test.log").write_text(message + "\n", encoding="utf-8")
+                return _PatchEvaluation(True, False, message, files, added, removed, FailureMode.OTHER)
+            status_path = root / "status"
+            cwd = f"repo/{case.workdir}" if case.workdir else "repo"
+            setup_script = ""
+            for setup in case.setup_commands:
+                setup_script += (
+                    f"{_bounded_shell_command(shlex.join(setup), case.timeout_seconds)}\n"
+                    "rc=$?\n"
+                    "if [ $rc -ne 0 ]; then echo SETUP_EXIT_CODE=$rc >> /host/status; exit 0; fi\n"
+                )
+            script = f"""
 : > /host/status
 {setup_script}
 {_bounded_shell_command(shlex.join(case.test_command), case.timeout_seconds)}
@@ -2143,68 +2191,68 @@ rc=$?
 echo TEST_EXIT_CODE=$rc >> /host/status
 exit 0
 """
-        completed = run_in_container(
-            _evaluation_image(case),
-            root,
-            script,
-            workdir=cwd,
-            env_overrides=case.env,
-            insecure_mounts=True,
-            timeout_seconds=(len(case.setup_commands) + 1)
-            * case.timeout_seconds
-            + 30,
-        )
-        log = completed.stdout
-        if completed.stderr:
-            log += ("\n" if log else "") + completed.stderr
-        (run_dir / "test.log").write_text(log, encoding="utf-8")
-        if completed.timed_out or completed.interrupted:
-            return _PatchEvaluation(
-                True,
-                False,
-                (
-                    "Container evaluation was interrupted"
-                    if completed.interrupted
-                    else f"Container evaluation timed out after {case.timeout_seconds} seconds"
-                ),
-                files,
-                added,
-                removed,
-                FailureMode.OTHER if completed.interrupted else FailureMode.TIMEOUT,
+            completed = run_in_container(
+                _evaluation_image(case),
+                root,
+                script,
+                workdir=cwd,
+                env_overrides=case.env,
+                insecure_mounts=True,
+                timeout_seconds=(len(case.setup_commands) + 1)
+                * case.timeout_seconds
+                + 30,
             )
-        if completed.returncode != 0 or not status_path.exists():
-            return _PatchEvaluation(
-                True, False, "Container evaluation failed", files, added, removed, FailureMode.OTHER
-            )
+            log = completed.stdout
+            if completed.stderr:
+                log += ("\n" if log else "") + completed.stderr
+            (run_dir / "test.log").write_text(log, encoding="utf-8")
+            if completed.timed_out or completed.interrupted:
+                return _PatchEvaluation(
+                    True,
+                    False,
+                    (
+                        "Container evaluation was interrupted"
+                        if completed.interrupted
+                        else f"Container evaluation timed out after {case.timeout_seconds} seconds"
+                    ),
+                    files,
+                    added,
+                    removed,
+                    FailureMode.OTHER if completed.interrupted else FailureMode.TIMEOUT,
+                )
+            if completed.returncode != 0 or not status_path.exists():
+                return _PatchEvaluation(
+                    True, False, "Container evaluation failed", files, added, removed, FailureMode.OTHER
+                )
 
-        status = dict(
-            line.split("=", 1)
-            for line in status_path.read_text(encoding="utf-8").splitlines()
-            if "=" in line
-        )
-        if "SETUP_EXIT_CODE" in status:
-            return _PatchEvaluation(
-                True,
-                False,
-                f"Setup failed with exit code {status['SETUP_EXIT_CODE']}",
-                files,
-                added,
-                removed,
-                FailureMode.OTHER,
+            status = dict(
+                line.split("=", 1)
+                for line in status_path.read_text(encoding="utf-8").splitlines()
+                if "=" in line
             )
-        exit_code = int(status.get("TEST_EXIT_CODE", "1"))
-        if exit_code == 124:
-            return _PatchEvaluation(
-                True,
-                False,
-                f"Tests timed out after {case.timeout_seconds} seconds",
-                files,
-                added,
-                removed,
-                FailureMode.TIMEOUT,
-            )
-        error = None if exit_code == 0 else f"Tests failed with exit code {exit_code}"
-        return _PatchEvaluation(True, exit_code == 0, error, files, added, removed)
+            if "SETUP_EXIT_CODE" in status:
+                return _PatchEvaluation(
+                    True,
+                    False,
+                    f"Setup failed with exit code {status['SETUP_EXIT_CODE']}",
+                    files,
+                    added,
+                    removed,
+                    FailureMode.OTHER,
+                )
+            exit_code = int(status.get("TEST_EXIT_CODE", "1"))
+            if exit_code == 124:
+                return _PatchEvaluation(
+                    True,
+                    False,
+                    f"Tests timed out after {case.timeout_seconds} seconds",
+                    files,
+                    added,
+                    removed,
+                    FailureMode.TIMEOUT,
+                )
+            error = None if exit_code == 0 else f"Tests failed with exit code {exit_code}"
+            return _PatchEvaluation(True, exit_code == 0, error, files, added, removed)
 
 
 def _read_numstat(path: Path) -> tuple[list[str], int, int]:
@@ -2324,6 +2372,7 @@ def _create_run_result(
         input_tokens=agent_details.get("input_tokens"),
         output_tokens=agent_details.get("output_tokens"),
         cache_read_tokens=agent_details.get("cache_read_tokens"),
+        cache_creation_tokens=agent_details.get("cache_creation_tokens"),
         reported_cost_usd=agent_details.get("reported_cost_usd"),
         mcp_enabled=bool(agent_details.get("mcp_enabled", False)),
         mcp_servers=list(agent_details.get("mcp_servers", [])),
@@ -2405,6 +2454,7 @@ def _write_run_result(path: Path, result: RunResult) -> None:
         "input_tokens": result.input_tokens,
         "output_tokens": result.output_tokens,
         "cache_read_tokens": result.cache_read_tokens,
+        "cache_creation_tokens": result.cache_creation_tokens,
         "reported_cost_usd": result.reported_cost_usd,
         "mcp_enabled": result.mcp_enabled,
         "mcp_servers": result.mcp_servers,
@@ -2524,7 +2574,7 @@ def _solver_image(case, agent_name: str) -> str | None:
                 java = historical.get('selection', {}).get('java_version')
                 runtime = manifest.config.get('preparation_runtimes', {}).get(java, {})
                 return runtime.get('solver_image') or manifest.config.get('solver_image')
-            profile = historical.get('profile')
+            profile = historical.get('profile') or raw.get('preparation_profile')
             if profile:
                 image = manifest.config.get('environment_profiles', {}).get(profile, {}).get('solver_image')
                 if image:

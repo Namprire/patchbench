@@ -4,14 +4,73 @@ import os
 import re
 import shlex
 import shutil
+import subprocess
 import tempfile
 from contextlib import contextmanager
 from pathlib import Path
 from typing import Iterator
 
+from unidiff import PatchSet
+
 from patchbench.exceptions import PatchbenchError
 from patchbench.models import PatchComparison
-from patchbench.runner import run_command
+from patchbench.runner import ensure_disk_space, redact_secrets, run_command
+
+
+def extract_solver_patch(
+    checkout: Path,
+    base_commit: str = "HEAD",
+    *,
+    exclude_paths: tuple[str, ...] = (),
+    max_bytes: int = 128 * 1024 * 1024,
+) -> str:
+    """Extract a complete diff against the solver's immutable starting commit.
+
+    Callers running an agent must supply its base commit: the agent may commit
+    its changes and move HEAD. The default preserves existing utility callers.
+
+    The root Maven dependency cache is runtime data. Resetting its index
+    entries first also handles agent-staged files and earlier intent-to-add
+    entries. Files already tracked in HEAD retain their working-tree changes.
+    """
+    cache = ".m2/repository"
+    reset = run_command(["git", "reset", "--quiet", "HEAD", "--", cache], cwd=checkout)
+    if reset.exit_code:
+        diagnostic = redact_secrets(reset.stderr.strip() or reset.stdout.strip())
+        raise PatchbenchError(f"Could not reset Maven cache index entries during patch extraction: {diagnostic}")
+    added = run_command(
+        ["git", "add", "-N", "--all", "--", ".", f":(top,exclude){cache}"],
+        cwd=checkout,
+    )
+    if added.exit_code:
+        raise PatchbenchError("Could not index new files during patch extraction")
+    command = ["git", "diff", base_commit, "--binary", "--", "."]
+    command.extend(f":(exclude){path}" for path in exclude_paths)
+    # Do not use communicate(): it retains the entire binary diff, then makes
+    # additional copies while decoding. Never return a truncated submission.
+    with tempfile.TemporaryFile() as output, tempfile.TemporaryFile() as errors:
+        process = subprocess.Popen(command, cwd=checkout, stdout=subprocess.PIPE, stderr=errors)
+        try:
+            assert process.stdout is not None
+            size = 0
+            while chunk := process.stdout.read(64 * 1024):
+                size += len(chunk)
+                if size > max_bytes:
+                    raise PatchbenchError(
+                        f"Patch extraction exceeded {max_bytes} bytes; "
+                        "no partial patch will be evaluated"
+                    )
+                output.write(chunk)
+            if process.wait() != 0:
+                raise PatchbenchError("Git diff failed during patch extraction")
+        finally:
+            if process.poll() is None:
+                process.kill()
+            process.wait()
+            if process.stdout is not None:
+                process.stdout.close()
+        output.seek(0)
+        return output.read().decode("utf-8", errors="replace")
 
 
 @contextmanager
@@ -48,6 +107,7 @@ def temporary_worktree(repo_path: Path, commit: str) -> Iterator[Path]:
 @contextmanager
 def temporary_checkout(repo_path: Path, commit: str) -> Iterator[Path]:
     """Create a self-contained, depth-1 checkout containing only the base commit."""
+    ensure_disk_space(Path(tempfile.gettempdir()))
     temp_dir = Path(tempfile.mkdtemp(prefix="patchbench-checkout-"))
     checkout_path = temp_dir / "repo"
     checkout_path.mkdir()
@@ -121,13 +181,60 @@ def apply_patch(worktree_path: Path, patch_path: Path) -> tuple[bool, str | None
     return True, None
 
 
+@contextmanager
+def evaluation_test_patch(
+    checkout: Path, base_commit: str, test_patch: Path | None,
+    *, reset_files: tuple[str, ...] = (),
+) -> Iterator[tuple[bool, str | None]]:
+    """Apply official tests between targeted base resets, as in SWE-bench PR #539.
+
+    Only paths from the official test patch or explicit frozen oracle inputs
+    are reset. Unrelated model tests remain in place for evaluation.
+    """
+    patch = PatchSet(test_patch.read_text(encoding="utf-8")) if test_patch else PatchSet("")
+    modified_files = [
+        file.source_file[2:]
+        for file in patch
+        if file.source_file != "/dev/null" and file.source_file.startswith("a/")
+    ]
+    # Existing-tests mirrors have no developer test patch. Their original,
+    # tracked test inputs are the frozen oracle and must be restored explicitly.
+    modified_files = sorted(set(modified_files) | set(reset_files))
+    new_files = [
+        file.target_file[2:] if file.target_file.startswith("b/") else file.target_file
+        for file in patch
+        if file.source_file == "/dev/null"
+    ]
+
+    def reset() -> None:
+        commands = []
+        # An empty checkout path list would reset the entire model patch.
+        if modified_files:
+            commands.append(["git", "checkout", base_commit, "--", *modified_files])
+        if new_files:
+            commands.append(["rm", "-f", "--", *new_files])
+        for command in commands:
+            result = run_command(command, cwd=checkout)
+            if result.exit_code != 0:
+                raise PatchbenchError(
+                    "Failed to reset official test patch files: "
+                    + (result.stderr.strip() or result.stdout.strip())
+                )
+
+    try:
+        reset()
+        yield apply_patch(checkout, test_patch) if test_patch else (True, None)
+    finally:
+        reset()
+
+
 def diff_stats(worktree_path: Path) -> tuple[list[str], int, int]:
     intent = run_command(["git", "add", "-N", "--all"], cwd=worktree_path)
     if intent.exit_code != 0:
         raise PatchbenchError(
             intent.stderr.strip() or intent.stdout.strip() or "git add -N failed"
         )
-    result = run_command(["git", "diff", "--numstat", "--", "."], cwd=worktree_path)
+    result = run_command(["git", "diff", "HEAD", "--numstat", "--", "."], cwd=worktree_path)
     if result.exit_code != 0:
         raise PatchbenchError(result.stderr.strip() or result.stdout.strip() or "git diff failed")
 

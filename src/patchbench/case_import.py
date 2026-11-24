@@ -152,6 +152,7 @@ def pull_drafts(
             if github_provider:
                 ingest_github_pr(github_repo=source['github_repo'],pr_number=iid,case_id=case_id,
                     repo_path=repository,output_path=drafts/case_id,client=gitlab,
+                    repository_id=repository_id,
                     candidate_features=candidate)
             else:
                 ingest_gitlab_mr(
@@ -214,8 +215,9 @@ def _repository_source(manifest):
         if not repository:
             url = source['git_url']
             repository = (url.split('github.com:',1)[1] if 'github.com:' in url else urlparse(url).path.lstrip('/')).removesuffix('.git')
-        if manifest.id != 'rucio' or repository != 'rucio/rucio':
-            raise PatchbenchError('Only rucio/rucio GitHub intake is configured')
+        from patchbench.github_client import GITHUB_REPOSITORIES
+        if GITHUB_REPOSITORIES.get(manifest.id) != repository:
+            raise PatchbenchError('GitHub intake requires a supported repository identity')
         return {**source,'type':'github','github_repo':repository}
     raise PatchbenchError('Repository source provider must be GitLab or GitHub')
 
