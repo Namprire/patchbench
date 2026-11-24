@@ -231,13 +231,21 @@ def _matching_http_request_count(
         key: str(value) for key, value in task.expected_path_parameters.items()
     }
     expected_status = task.evaluation["expected_http_status"]
+
+    def normalize_query(query):
+        insensitive = task.evaluation.get("case_insensitive_query_parameters", [])
+        return {
+            key: [item.casefold() for item in values] if key in insensitive else values
+            for key, values in query.items()
+        }
+
     return sum(
         request.get("method") == task.expected_http_method
         and request.get("path")
         == _render_path(task.expected_path_template, task.expected_path_parameters)
         and request.get("path_template") == task.expected_path_template
         and request.get("path_parameters") == expected_path_parameters
-        and request.get("query_parameters") == expected_query
+        and normalize_query(request.get("query_parameters") or {}) == normalize_query(expected_query)
         and request.get("response_status") == expected_status
         for request in requests
     )
@@ -249,6 +257,9 @@ def validate_evaluation(value: Any) -> dict[str, Any]:
     status = value.get("expected_http_status")
     if type(status) is not int or not 100 <= status <= 599:
         raise PatchbenchError("Answer evaluation requires an HTTP status")
+    insensitive = value.get("case_insensitive_query_parameters", [])
+    if not isinstance(insensitive, list) or any(not isinstance(key, str) or not key for key in insensitive):
+        raise PatchbenchError("case_insensitive_query_parameters must be a list of parameter names")
     rules = value.get("normalization")
     if not isinstance(rules, list):
         raise PatchbenchError("Answer normalization must be a list")

@@ -205,6 +205,7 @@ class RunResult:
     failure_mode: str  # One of FailureMode constants
     error: str | None
     artifacts: dict[str, str]  # Paths to artifact files
+    cache_creation_tokens: int | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)

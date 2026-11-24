@@ -131,7 +131,9 @@ def prepare_draft(repository, case_id, *, root, agent_profile, max_attempts=3,
     problem = sanitize_text(case.problem_statement.read_text(encoding='utf-8'))
     try:
         with temporary_checkout(source.repo_path, source.base_commit) as checkout:
-            environment = discover_environment(checkout, manifest, case, problem.splitlines()[0] if problem else '')
+            environment = discover_environment(checkout, manifest, case, problem.splitlines()[0] if problem else '',
+                                               component=meta.get('preparation_component'),
+                                               profile=meta.get('preparation_profile'))
             environment['test_context'] = discover_test_patterns(checkout, environment)
     except Exception as exc:
         environment = dict(schema_version=1, base_commit=case.base_commit, build_system='unknown',
@@ -182,7 +184,8 @@ def prepare_draft(repository, case_id, *, root, agent_profile, max_attempts=3,
             import tempfile
             probe = 'mvn --version' if environment['build_system'] == 'maven' else 'python -m pytest --version'
             with tempfile.TemporaryDirectory(prefix='patchbench-environment-') as directory:
-                checked = run_in_container(environment['image'], Path(directory), probe, timeout_seconds=60)
+                checked = run_in_container(environment['image'], Path(directory), probe, timeout_seconds=60,
+                                           network='none', insecure_mounts=True)
             environment['execution_results'].append(dict(stage='runtime_probe', command=probe,
                 exit_code=checked.returncode, output=redact_secrets(checked.stdout + checked.stderr)[-4000:]))
             if checked.returncode or checked.timed_out:
@@ -291,6 +294,8 @@ def prepare_draft(repository, case_id, *, root, agent_profile, max_attempts=3,
                                        env=environment.get('env', case.env), validation_policy='strict_f2p_v1')
                         if environment.get('image_identity'):
                             updated['validation_image_identity'] = environment['image_identity']
+                        if environment.get('environment_profile'):
+                            updated['preparation_profile'] = environment['environment_profile']
                         updated['draft_todos'] = [t for t in meta.get('draft_todos', [])
                                                   if 'test.patch' not in t and 'test_command' not in t]
                         staged_meta = session / 'meta.yaml'

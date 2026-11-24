@@ -460,10 +460,13 @@ describe("PatchBench evaluation workspace", () => {
     expect(screen.getByText("condition · curated")).toBeInTheDocument();
   });
 
-  it("requires a named model and offers recent names without a provider default", async () => {
+  it("requires a named model and offers configured and recent names without a provider default", async () => {
     renderApp("/workflow");
     await screen.findByRole("heading",{name:"Build"});
-    expect(await screen.findByLabelText("Recent model")).toHaveAttribute("data-model-options",expect.stringContaining("fixture-model"));
+    expect(await screen.findByLabelText("Model")).toHaveAttribute("data-model-options",expect.stringContaining("fixture-model"));
+    for(const model of ["qwen3.8-flash-next","qwen3-coder-next","zai-org/GLM-5.3","zai-org/GLM-5.3-Flash","moonshotai/Kimi-K2.6","deepseek-ai/DeepSeek-V4-Flash-0731","gpt-6.1-sol-preview","gpt-6-sol-preview","gpt-6-luna-preview","gpt-5.6-sol-preview"]){
+      expect(screen.getByLabelText("Model")).toHaveAttribute("data-model-options",expect.stringContaining(model));
+    }
     expect(screen.queryByText("provider default")).not.toBeInTheDocument();
     expect(screen.getByRole("button",{name:"Play demo"})).toBeDisabled();
     fireEvent.change(screen.getByLabelText("Model ID"),{target:{value:"fixture-model"}});
@@ -479,6 +482,8 @@ describe("PatchBench evaluation workspace", () => {
 
     expect(await screen.findByLabelText("Agent image")).toHaveAttribute("data-options",expect.stringContaining("patchbench-rucio-claude:tests-v2"));
     expect(screen.getByLabelText("Agent env file")).toHaveAttribute("data-options",expect.stringContaining("~/.config/patchbench/claude-env.sh"));
+    expect(screen.getByLabelText("Agent env file")).toHaveAttribute("data-options",expect.stringContaining("~/.config/patchbench/fau-env.sh"));
+    expect(screen.getByLabelText("Agent env file")).toHaveAttribute("data-options",expect.stringContaining("~/.config/patchbench/cern-env.sh"));
     expect(screen.getByLabelText("Agent env file")).toHaveClass("overflow-hidden");
     expect(screen.getByLabelText("CA file")).toHaveAttribute("data-options",expect.stringContaining("~/.config/patchbench/provider-ca-bundle.pem"));
     expect(screen.getByLabelText("Custom agent env file")).toBeInTheDocument();

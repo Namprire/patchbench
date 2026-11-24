@@ -11,12 +11,14 @@ import subprocess
 import tempfile
 import threading
 import time
+from contextlib import ExitStack, contextmanager
 from pathlib import Path
 from typing import Callable, NamedTuple
 
 from patchbench.repositories import load_repository
 from patchbench.exceptions import PatchbenchError
 from patchbench.runner import redact_command_secrets, redact_secrets
+from patchbench.podman_backend import build_context, podman_command, remote_backend, remote_enabled, ensure_remote_image
 
 
 class ContainerResult(NamedTuple):
@@ -31,7 +33,7 @@ class ContainerResult(NamedTuple):
 def ensure_podman_available() -> None:
     try:
         subprocess.run(
-            ["podman", "info", "--format", "json"],
+            podman_command("info", "--format", "json"),
             capture_output=True,
             text=True,
             check=True,
@@ -93,14 +95,8 @@ def build_image(
         if not isinstance(build_args, dict) or not all(isinstance(k, str) and isinstance(v, str) for k, v in build_args.items()):
             raise PatchbenchError('Environment build_args must map argument names to strings')
         arguments = [arg for key, value in sorted(build_args.items()) for arg in ('--build-arg', key + '=' + value)]
-        completed = subprocess.run(
-            ["podman", "build", "-f", str(containerfile), "-t", image_name, *arguments, "."],
-            cwd=manifest.path.parent.parent,
-            capture_output=True,
-            text=True,
-            check=False,
-            timeout=timeout_seconds,
-        )
+        completed = _build_podman_image(containerfile, image_name, manifest.path.parent.parent,
+                                        arguments, timeout=timeout_seconds)
     except subprocess.TimeoutExpired as exc:
         raise PatchbenchError(f"Image build exceeded {timeout_seconds:g} seconds") from exc
     if completed.returncode != 0:
@@ -108,6 +104,13 @@ def build_image(
             f"Failed to build image: {completed.stderr or completed.stdout}"
         )
     return image_name
+
+
+def _build_podman_image(containerfile, image_name, context, arguments=(), **kwargs):
+    with build_context(containerfile, context) as (recipe, directory):
+        return subprocess.run(
+            podman_command("build", "-f", str(recipe), "-t", image_name, *arguments, "."),
+            cwd=directory, capture_output=True, text=True, check=False, **kwargs)
 
 
 def run_in_container(
@@ -125,6 +128,7 @@ def run_in_container(
 ) -> ContainerResult:
     """Run an evaluator command with a host directory mounted at `/host`."""
     ensure_podman_available()
+    ensure_remote_image(image_name)
     # Give evaluators a real parent process and reap children. Historical tools
     # inspect their parent (e.g. psutil); PID 1 otherwise has parent PID 0.
     cmd = ["podman", "run", "--rm", "--init", "-v", f"{worktree_path.resolve()}:/host"]
@@ -162,6 +166,7 @@ def run_solver_in_container(
 ) -> ContainerResult:
     """Run a solver with only its checkout and read-only issue prompt mounted."""
     ensure_podman_available()
+    ensure_remote_image(image_name)
     cmd = [
         "podman",
         "run",
@@ -214,12 +219,7 @@ def build_claude_code_image(
     if not containerfile.is_file():
         raise PatchbenchError(f"Containerfile not found: {containerfile}")
     if repository is None:
-        completed = subprocess.run(
-            ["podman", "build", "-f", str(containerfile), "-t", image_name, "."],
-            capture_output=True,
-            text=True,
-            check=False,
-        )
+        completed = _build_podman_image(containerfile, image_name, Path.cwd())
     else:
         with tempfile.TemporaryDirectory(prefix="patchbench-agent-image-") as raw:
             build_context = Path(raw)
@@ -246,25 +246,10 @@ def build_claude_code_image(
                     "*.pyc",
                 ),
             )
-            completed = subprocess.run(
-                [
-                    "podman",
-                    "build",
-                    "-f",
-                    containerfile.name,
-                    "-t",
-                    image_name,
-                    "--build-arg",
-                    f"LANDB_MCP_REVISION={revision}",
-                    "--build-arg",
-                    f"LANDB_MCP_DIRTY={str(dirty).lower()}",
-                    ".",
-                ],
-                cwd=build_context,
-                capture_output=True,
-                text=True,
-                check=False,
-            )
+            completed = _build_podman_image(
+                build_context / containerfile.name, image_name, build_context,
+                ["--build-arg", f"LANDB_MCP_REVISION={revision}",
+                 "--build-arg", f"LANDB_MCP_DIRTY={str(dirty).lower()}"])
     if completed.returncode != 0:
         raise PatchbenchError(
             f"Failed to build Claude Code solver image: {completed.stderr or completed.stdout}"
@@ -276,7 +261,7 @@ def inspect_landb_mcp_image(image_name: str) -> tuple[str, bool]:
     """Read the pinned LanDB MCP revision from a versioned solver image."""
     ensure_podman_available()
     completed = subprocess.run(
-        ["podman", "image", "inspect", image_name],
+        podman_command("image", "inspect", image_name),
         capture_output=True,
         text=True,
         check=False,
@@ -335,11 +320,31 @@ def _validate_landb_mcp_source(repository: Path) -> tuple[str, bool]:
     return revision, dirty
 
 
+@contextmanager
+def _claude_login_mount(login_dir: Path):
+    """Serialize native credential refresh; never stage credentials in artifacts."""
+    import fcntl
+
+    login_dir = login_dir.expanduser().resolve()
+    if not login_dir.is_dir() or login_dir == Path.home() / ".claude":
+        raise PatchbenchError("Use a dedicated external Claude login directory")
+    if login_dir.stat().st_uid != os.getuid() or login_dir.stat().st_mode & 0o077:
+        raise PatchbenchError("Claude login directory must be owned by you and have mode 700")
+    if any(path.is_symlink() for path in login_dir.rglob("*")):
+        raise PatchbenchError("Claude login directory must not contain symlinks")
+    with (login_dir / ".patchbench-login.lock").open("a") as lock:
+        try:
+            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            raise PatchbenchError("This Claude login is already in use; run one worker per login directory") from None
+        yield login_dir
+
+
 def run_claude_in_container(
     image_name: str,
     worktree_path: Path,
     prompt_path: Path,
-    env_file: Path,
+    env_file: Path | None,
     command: str,
     timeout_seconds: float | None,
     environment: dict[str, str],
@@ -348,6 +353,8 @@ def run_claude_in_container(
     mcp_config_path: Path | None = None,
     provider_ca_path: Path | None = None,
     dependency_cache: Path | None = None,
+    login_dir: Path | None = None,
+    refresh_redactions: Callable[[], dict[str, str]] | None = None,
 ) -> ContainerResult:
     """Run Claude Code with a read-only credential script and provider connectivity.
 
@@ -355,7 +362,12 @@ def run_claude_in_container(
     mounted directly rather than copied into the image or any run artifact.
     """
     ensure_podman_available()
-    mounted_env, cleanup = _claude_env_mount(image_name, env_file)
+    if (env_file is None) == (login_dir is None):
+        raise PatchbenchError("Provide either a Claude provider env file or a login directory")
+    if remote_enabled() and login_dir is not None:
+        raise PatchbenchError("Native Claude login refresh is local-only; use local mode for --agent-login-dir")
+    ensure_remote_image(image_name)
+    mounted_env, cleanup = _claude_env_mount(image_name, env_file) if env_file is not None else (None, False)
     cmd = [
         "podman",
         "run",
@@ -371,9 +383,12 @@ def run_claude_in_container(
         f"{worktree_path.resolve()}:/workspace",
         "-v",
         f"{prompt_path.resolve()}:/run/patchbench/issue.md:ro",
-        "-v",
-        f"{mounted_env.resolve()}:/run/patchbench/claude-env.sh:ro",
     ]
+    if mounted_env is not None:
+        cmd.extend(["-v", f"{mounted_env.resolve()}:/run/patchbench/claude-env.sh:ro"])
+    if "/run/patchbench/kimi_compat.py" in command:
+        adapter = Path(__file__).parent / "agents" / "kimi_compat.py"
+        cmd.extend(["-v", f"{adapter.resolve()}:/run/patchbench/kimi_compat.py:ro"])
     if mcp_config_path is not None:
         cmd.extend(
             ["-v", f"{mcp_config_path.resolve()}:/run/patchbench/mcp.json:ro"]
@@ -386,7 +401,10 @@ def run_claude_in_container(
             ]
         )
     if dependency_cache is not None:
-        cmd.extend(['-v', f'{dependency_cache.resolve()}/repository:/home/node/.m2/repository:ro'])
+        # Private copy-on-write storage permits Maven metadata/install writes
+        # without changing the shared, frozen cache or another solver's view.
+        cmd.extend(['-v', f'{dependency_cache.resolve()}/repository:/home/node/.m2/repository:O',
+                    '-e', 'MAVEN_ARGS=-o'])
     cmd.extend(
         [
         "-e",
@@ -400,20 +418,24 @@ def run_claude_in_container(
         ]
     )
     try:
-        return _run_streaming_container_process(
-            cmd,
-            timeout_seconds=timeout_seconds,
-            environment=environment,
-            redaction_command=command,
-            progress_callback=progress_callback or (lambda *_args: None),
-        )
+        with ExitStack() as stack:
+            if login_dir is not None:
+                mounted_login = stack.enter_context(_claude_login_mount(login_dir))
+                # A directory mount permits atomic credential renewal by the CLI.
+                # --safe-mode prevents customizations from being loaded.
+                position = cmd.index("-w")
+                cmd[position:position] = ["-v", f"{mounted_login}:/run/patchbench/claude-login:rw"]
+            return _run_streaming_container_process(
+                cmd,
+                timeout_seconds=timeout_seconds,
+                environment=environment,
+                redaction_command=command,
+                progress_callback=progress_callback or (lambda *_args: None),
+                **({"refresh_redactions": refresh_redactions} if refresh_redactions is not None else {}),
+            )
     finally:
         if cleanup:
             mounted_env.unlink(missing_ok=True)
-            try:
-                mounted_env.parent.rmdir()
-            except OSError:
-                pass
 
 
 def _run_streaming_container_process(
@@ -424,8 +446,32 @@ def _run_streaming_container_process(
     redaction_command: str,
     progress_callback: Callable[[str, str, float, bool], None],
     process_environment: dict[str, str] | None = None,
+    refresh_redactions: Callable[[], dict[str, str]] | None = None,
 ) -> ContainerResult:
     """Run Podman while forwarding redacted lines and periodic heartbeats."""
+    backend = remote_backend()
+    if backend is not None:
+        try:
+            with backend.stage_run(command, timeout_seconds) as staged:
+                return _stream_container_process(
+                    staged, timeout_seconds=timeout_seconds, environment=environment,
+                    redaction_command=redaction_command, progress_callback=progress_callback,
+                    process_environment=process_environment, refresh_redactions=refresh_redactions)
+        except PatchbenchError as exc:
+            raise PatchbenchError(redact_command_secrets(redact_secrets(str(exc), environment),
+                                                        redaction_command)) from None
+    return _stream_container_process(
+        command, timeout_seconds=timeout_seconds, environment=environment,
+        redaction_command=redaction_command, progress_callback=progress_callback,
+        process_environment=process_environment, refresh_redactions=refresh_redactions)
+
+
+def _stream_container_process(
+    command: list[str], *, timeout_seconds: float | None, environment: dict[str, str],
+    redaction_command: str, progress_callback: Callable[[str, str, float, bool], None],
+    process_environment: dict[str, str] | None = None,
+    refresh_redactions: Callable[[], dict[str, str]] | None = None,
+) -> ContainerResult:
     started = time.monotonic()
     process = subprocess.Popen(
         command,
@@ -460,6 +506,14 @@ def _run_streaming_container_process(
     closed_streams = 0
     timed_out = False
     interrupted = False
+
+    def sanitize(line: str) -> str:
+        if refresh_redactions is not None:
+            for value in refresh_redactions().values():
+                if value not in environment.values():
+                    environment[f"REFRESHED_LOGIN_SECRET_{len(environment)}"] = value
+        return redact_command_secrets(redact_secrets(line, environment), redaction_command)
+
     try:
         while True:
             elapsed = time.monotonic() - started
@@ -487,9 +541,7 @@ def _run_streaming_container_process(
                     break
                 continue
 
-            sanitized = redact_command_secrets(
-                redact_secrets(line, environment), redaction_command
-            )
+            sanitized = sanitize(line)
             if stream_name == "stdout":
                 stdout_parts.append(sanitized)
             else:
@@ -514,9 +566,7 @@ def _run_streaming_container_process(
             break
         if line is None:
             continue
-        sanitized = redact_command_secrets(
-            redact_secrets(line, environment), redaction_command
-        )
+        sanitized = sanitize(line)
         if stream_name == "stdout":
             stdout_parts.append(sanitized)
         else:
@@ -556,10 +606,18 @@ def _terminate_process(process: subprocess.Popen[str]) -> None:
 
 def _claude_env_mount(image_name: str, env_file: Path) -> tuple[Path, bool]:
     """Return a Podman-readable env script, copying only when a bind mount fails."""
+    if remote_enabled():
+        if not env_file.is_file():
+            raise PatchbenchError("Claude provider env file does not exist")
+        # Remote staging owns its tmpfs copy; never probe the local credential
+        # path against a remote Podman host or copy it into project artifacts.
+        return env_file, False
     if _podman_can_read_file(image_name, env_file):
         return env_file, False
 
     runtime_dir = Path(".patchbench-runtime").resolve()
+    # Keep this shared directory: another process may be between mkdir and
+    # mkstemp. Each caller cleans up only its own uniquely named file.
     runtime_dir.mkdir(mode=0o700, exist_ok=True)
     runtime_dir.chmod(0o700)
     descriptor, copied_name = tempfile.mkstemp(
@@ -577,10 +635,6 @@ def _claude_env_mount(image_name: str, env_file: Path) -> tuple[Path, bool]:
             )
     except BaseException:
         copied.unlink(missing_ok=True)
-        try:
-            runtime_dir.rmdir()
-        except OSError:
-            pass
         raise
     return copied, True
 

@@ -3,7 +3,7 @@ name = "patchbench"
 version = "0.1.0"
 description = "Minimal SWE-bench-inspired evaluation harness"
 requires-python = ">=3.9"
-dependencies = ["pyyaml", "tomli>=2; python_version < '3.11'"]
+dependencies = ["pyyaml", "tomli>=2; python_version < '3.11'", "unidiff==0.7.5"]
 
 [project.optional-dependencies]
 dev = ["pytest>=6.2"]

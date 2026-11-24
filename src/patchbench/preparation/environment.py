@@ -12,7 +12,7 @@ from patchbench.exceptions import PatchbenchError
 from patchbench.runner import sanitize_command
 
 
-def discover_environment(checkout: Path, manifest, case, problem_title: str = "") -> dict:
+def discover_environment(checkout: Path, manifest, case, problem_title: str = "", *, component=None, profile=None) -> dict:
     files = sorted(p.relative_to(checkout).as_posix() for p in checkout.rglob('*')
                    if p.is_file() and '.git' not in p.relative_to(checkout).parts)
     inspected = [f for f in files if Path(f).name in {
@@ -44,14 +44,20 @@ def discover_environment(checkout: Path, manifest, case, problem_title: str = ""
     python_component = None
     if system == 'pytest':
         scores = {p:sum(f.startswith(p + '/') for f in relevant) for p in python_packages}
-        declared = case.workdir or '.'
+        if component is not None and (not isinstance(component, str) or component not in scores):
+            raise PatchbenchError('Explicit preparation component must be an existing Python package')
+        declared = component or case.workdir or '.'
         python_component = declared if declared in scores else max(scores, key=lambda p:(scores[p], p == '.'))
         relevant = [f for f in relevant if python_component == '.' or f.startswith(python_component + '/')]
     runtime = manifest.config.get('preparation_runtimes', {}).get(java or '', {})
     environment_profile = None
     env = dict(getattr(case, 'env', {}))
     if system == 'pytest':
+        if profile is not None and profile not in manifest.config.get('environment_profiles', {}):
+            raise PatchbenchError('Unknown explicit preparation profile')
         for name, settings in manifest.config.get('environment_profiles', {}).items():
+            if (profile is not None and name != profile) or (settings.get('preparation_opt_in') and name != profile):
+                continue
             if settings.get('component') != python_component:
                 continue
             selectors = settings.get('source_contains', {})
@@ -62,13 +68,30 @@ def discover_environment(checkout: Path, manifest, case, problem_title: str = ""
                 env.update(manifest.config.get('historical_pr_tests', {}).get('env', {}))
                 env.update(settings.get('historical_pr_tests', {}).get('env', {}))
                 break
+        if profile is not None and environment_profile != profile:
+            raise PatchbenchError('Explicit preparation profile does not match the Base component/configuration')
     image = runtime.get('image', case.image)
     solver_image = runtime.get('solver_image', manifest.config.get('solver_image'))
+    regression = runtime.get('preparation_regression_files')
+    if regression is not None:
+        roots = tuple(str(Path(python_component or '.') / name) + '/' for name in ('test', 'tests'))
+        if (not isinstance(regression, list) or not regression or any(
+                not isinstance(name, str) or not name.startswith(roots) or '..' in Path(name.split('::')[0]).parts
+                or '\\' in name or not name.split('::')[0].endswith('.py')
+                or any(not re.fullmatch(r'\w+', node) for node in name.split('::')[1:])
+                or (checkout / name.split('::')[0]).is_symlink()
+                or not (checkout / name.split('::')[0]).is_file()
+                or not (checkout / name.split('::')[0]).resolve().is_relative_to(checkout.resolve())
+                for name in regression)):
+            raise PatchbenchError('Configured preparation regression files must be existing component test files')
+        from patchbench.historical_pr_tests import targeted_pytest_policy
+        addopts = targeted_pytest_policy({'workdir': python_component}, checkout, regression)['targeted_addopts']
     # Candidate commands are templates; the selected command targets actual generated tests.
     return dict(schema_version=1, base_commit=case.base_commit, build_system=system,
                 java_version=java, workdir=case.workdir, python_component=python_component,
                 image=image, solver_image=solver_image,
                 environment_profile=environment_profile, env=env,
+                **({'regression_test_files': regression, 'targeted_addopts': addopts} if regression is not None else {}),
                 setup_commands=[sanitize_command(shlex.join(c)) for c in case.setup_commands], inspected_files=inspected, configuration_digests=fingerprints,
                 relevant_base_files=relevant, public_test_directories=sorted({str(Path(f).parent) for f in files
                     if '/src/test/' in f or ('test' in Path(f).parts or 'tests' in Path(f).parts) and f.endswith('.py')}),
@@ -95,10 +118,13 @@ def test_command(checkout: Path, environment: dict, files: list[str]) -> list[st
         if not files or any(not re.fullmatch(r'tests/(?:[\w]+/)*test_[\w]+.py', f) for f in files):
             raise PatchbenchError('Only new tests/test_*.py regression tests are allowed')
         component = environment.get('python_component') or '.'
-        public = [str(Path(component) / name) for name in ('test', 'tests')
-                  if (checkout / component / name).is_dir()]
+        public = environment.get('regression_test_files')
+        if public is None:
+            public = [str(Path(component) / name) for name in ('test', 'tests')
+                      if (checkout / component / name).is_dir()]
         # New files are under tests/; avoid collecting that tree twice.
         scope = list(dict.fromkeys([*public, *[f for f in files if not any(
             f.startswith(p.rstrip('/') + '/') for p in public)]]))
-        return ['python', '-B', '-m', 'pytest', *scope, '--junitxml=patchbench-junit.xml']
+        options = ['-o', 'addopts=' + environment['targeted_addopts']] if 'targeted_addopts' in environment else []
+        return ['python', '-B', '-m', 'pytest', *options, *scope, '--junitxml=patchbench-junit.xml']
     raise PatchbenchError('No supported deterministic test command found')

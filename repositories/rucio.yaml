@@ -14,6 +14,21 @@ source:
 historical_pr_tests:
   image: patchbench-rucio-historical:tests-v2
 benchmark_components:
+  client-offline-v1:
+    path: lib/rucio
+    source_paths: [lib/rucio/client/]
+    image: patchbench-rucio:unit-v2
+    external_services_required: false
+    timeout_seconds: 180
+    test_policy:
+      name: rucio-client-offline-v1
+      reason: 'Client regressions use local temporary configuration/token files and simulated HTTP responses. No live authentication, database or storage services. Preserve the existing offline utility suite and include evaluator-only regression files; do not collect the server-dependent client/CLI suites.'
+    setup_commands: []
+    test_command:
+      - python
+      - -B
+      - -c
+      - "import glob, sys, pytest; sys.path[:0] = ['lib', '.']; raise SystemExit(pytest.main(['tests/test_utils.py', *sorted(glob.glob('tests/test_patchbench_*.py')), '-k', 'not bittorrent', '--junitxml=patchbench-junit.xml', '-q']))"
   common-unit:
     path: lib/rucio
     image: patchbench-rucio:unit-v2

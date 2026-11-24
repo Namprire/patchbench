@@ -5,14 +5,14 @@ import re
 from patchbench import __version__
 from patchbench.case import is_safe_path_component
 from patchbench.exceptions import PatchbenchError
-from patchbench.github_client import GitHubClient
+from patchbench.github_client import GitHubClient, GITHUB_REPOSITORIES
 from patchbench.ingest import _build_issue, _build_metadata, _generate_gold_patch, _write_draft
 
 
 def ingest_github_pr(*, github_repo, pr_number, case_id, repo_path, output_path,
                      repository_id='rucio', client=None, candidate_features=None):
-    if github_repo != 'rucio/rucio' or repository_id != 'rucio':
-        raise PatchbenchError('Only rucio/rucio is configured for this pilot')
+    if GITHUB_REPOSITORIES.get(repository_id) != github_repo:
+        raise PatchbenchError('GitHub repository must match the configured repository identity')
     if not is_safe_path_component(case_id):
         raise PatchbenchError('case ID must be a single non-empty path component')
     output = Path(output_path).expanduser().resolve()
@@ -30,7 +30,7 @@ def ingest_github_pr(*, github_repo, pr_number, case_id, repo_path, output_path,
     acquired = {**pr, 'description': pr.get('body'), 'iid': pr_number,
         'labels': [item['name'] for item in pr.get('labels', [])]}
     issue = _build_issue(acquired, client)
-    metadata = _build_metadata(case_id=case_id, repo_name='rucio', repo_path=repository,
+    metadata = _build_metadata(case_id=case_id, repo_name=repository_id, repo_path=repository,
         project_id=github_repo, mr_iid=pr_number, gitlab_url='', base_commit=base,
         human_commit=fix, repository_id=repository_id, output_path=output)
     metadata['source'] = dict(type='github', github_repo=github_repo, pull_request_number=pr_number)
@@ -54,4 +54,4 @@ def ingest_github_pr(*, github_repo, pr_number, case_id, repo_path, output_path,
             return [redact(item) for item in value]
         return value
     provenance, safe = redact(provenance), redact(safe)
-    return _write_draft(output, issue, patch, metadata, provenance, 'rucio', case_id, safe, redact(candidate_features or {}))
+    return _write_draft(output, issue, patch, metadata, provenance, repository_id, case_id, safe, redact(candidate_features or {}))

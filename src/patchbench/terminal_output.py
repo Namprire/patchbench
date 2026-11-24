@@ -6,12 +6,14 @@ technical result on stdout so existing scripts can continue to parse it.
 
 from __future__ import annotations
 
+import json
 import os
 import re
 import sys
 import threading
 import time
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any, Mapping, TextIO
 
 from patchbench.runner import redact_secrets
@@ -246,6 +248,7 @@ class RunDisplay:
         stream: TextIO | None = None,
         environment: Mapping[str, str] | None = None,
         clock=time.monotonic,
+        status_path: Path | None = None,
     ) -> None:
         self.case_id = case_id
         self.run_id = run_id
@@ -254,6 +257,7 @@ class RunDisplay:
         self.stream = stream or sys.stderr
         self.clock = clock
         self.started = clock()
+        self.status_path = status_path
         env = environment if environment is not None else os.environ
         tty = bool(getattr(self.stream, "isatty", lambda: False)())
         terminal_capable = (
@@ -343,6 +347,7 @@ class RunDisplay:
         if "evaluation_status" in fields:
             self.evaluation_status = str(fields["evaluation_status"])
         self._spinner_index += 1
+        self._write_status()
         if self.dynamic:
             self._render_dynamic()
             self._last_dynamic_render = now
@@ -397,11 +402,27 @@ class RunDisplay:
             self.stream.flush()
             self._cursor_hidden = False
         self._closed = True
+        self._write_status()
+
+    def _write_status(self) -> None:
+        if self.status_path is None:
+            return
+        # Only display fields cross the process boundary, never prompts or env.
+        state = {key: getattr(self, key) for key in (
+            "case_id", "run_id", "agent", "max_turns", "phase", "phase_status",
+            "container_status", "turns", "tool_calls", "last_activity",
+            "tests_status", "evaluation_status",
+        )}
+        state.update(elapsed_seconds=self.clock() - self.started,
+                     updated_at=time.time(), closed=self._closed)
+        temporary = self.status_path.with_name(self.status_path.name + ".tmp")
+        temporary.write_text(json.dumps(state, ensure_ascii=False), encoding="utf-8")
+        temporary.replace(self.status_path)
 
     def _render_dynamic(self) -> None:
-        if not self._cursor_hidden:
-            self.stream.write(_CURSOR_HIDE)
-            self._cursor_hidden = True
+        self._paint_lines(self._dynamic_lines())
+
+    def _dynamic_lines(self) -> list[str]:
         elapsed = format_duration(self.clock() - self.started)
         turns = "–" if self.unicode_enabled else "-"
         if self.max_turns is not None:
@@ -473,14 +494,23 @@ class RunDisplay:
                 color=self.color_enabled,
             ),
         ]
+        return lines
+
+    def _paint_lines(self, lines: list[str]) -> None:
+        if not self._cursor_hidden:
+            self.stream.write(_CURSOR_HIDE)
+            self._cursor_hidden = True
         if self._rendered_lines:
             self.stream.write(f"\x1b[{self._rendered_lines}F")
         for line in lines:
             self.stream.write(
                 f"{_ERASE_LINE}{_clip_ansi(line, self.terminal_width)}\n"
             )
-        for _ in range(max(0, self._rendered_lines - len(lines))):
+        erased_lines = max(0, self._rendered_lines - len(lines))
+        for _ in range(erased_lines):
             self.stream.write(f"{_ERASE_LINE}\n")
+        if erased_lines:
+            self.stream.write(f"\x1b[{erased_lines}F")
         self.stream.flush()
         self._rendered_lines = len(lines)
 

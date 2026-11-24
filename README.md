@@ -23,9 +23,13 @@ benchmark cases. Use the synthetic examples below for runnable public inputs.
 
 ## Quick Start
 
-Requirements: Python **3.9+**, Git, and [uv](https://docs.astral.sh/uv/).
+Requirements for the current source: Python **3.10+**, Git, and [uv](https://docs.astral.sh/uv/).
 The examples use only the Python standard library after installing PatchBench.
 No CERN access, container runtime, API token or LLM is needed.
+
+Package metadata still advertises Python 3.9, but an import-time union annotation
+in the current source is incompatible with that interpreter. Use 3.10 or newer
+until the implementation and declared minimum are reconciled.
 
 Run these commands in Bash:
 
@@ -83,9 +87,9 @@ existing supported account or provider configuration. Check it in the same shell
 claude -p "Reply with OK"
 ```
 
-**Current adapter limitation:** PatchBench invokes Claude Code with `--bare`.
+**API-key walkthrough:** PatchBench invokes Claude Code with `--bare` in this mode.
 [That mode skips subscription/OAuth and keychain credentials](https://code.claude.com/docs/en/headless#start-faster-with-bare-mode),
-so an existing subscription login alone does not work with this adapter, even if
+so an existing subscription login alone does not authenticate this mode, even if
 the check above succeeds. For Anthropic API access, securely export your existing
 `ANTHROPIC_API_KEY` in the same shell; an API key has separate billing from a
 subscription. Other provider configurations must work in bare mode and through
@@ -95,6 +99,17 @@ supported. Confirm bare-mode access before benchmarking:
 ```bash
 claude --bare -p "Reply with OK"
 ```
+
+The current source adapter also supports explicit native file-based login through
+`--agent-login-dir`, using a dedicated external directory and the Claude CLI's
+own refresh mechanism. This is a separate authentication mode; it does not
+automatically reuse every existing CLI/keychain configuration. Coding sessions
+in that mode require containers, and remote Podman currently rejects it.
+The API-key example below does not exercise native-login setup or account access.
+
+For one managing installation with containers on a separate Linux host, see
+[remote coding containers](docs/remote-execution.md). Local execution remains the
+default; SSH transport and temporary credential staging are opt-in.
 
 Both checks make real model requests. Once the bare-mode check succeeds with
 compatible environment credentials, use the case generated in Quick Start:
@@ -122,6 +137,10 @@ adapter is an alternative for your own containerized solver command.
 - Optional bounded model assistance for triage, construction and hidden regression
   generation, followed by executable acceptance checks.
 - Host or rootless Podman evaluation, Claude Code and container-command adapters.
+- Opt-in SSH transport for remote coding containers, with local orchestration
+  and results, private runtime credential mounts, and local execution fallback.
+- Budget-stop patch capture, protected evaluator test inputs, and final-session
+  token accounting, including cache creation counters when reported.
 - Frozen inputs, immutable attempts, patch capture, execution traces and reports.
 - A React Research Console for runs, artifacts, comparisons and construction.
 
@@ -208,6 +227,7 @@ flowchart LR
 | Evaluation | Isolate solving from tests; apply patches and run declared checks | [commands.py](src/patchbench/commands.py), [gitutils.py](src/patchbench/gitutils.py) |
 | Agent adapters | Execute a harness and retain its patch and evidence | [agents](src/patchbench/agents) |
 | Evidence and reporting | Functional results, summaries, trace and dashboard export | [report.py](src/patchbench/report.py), [dashboard_export.py](src/patchbench/dashboard_export.py) |
+| Remote container transport | SSH service access, bind staging, image transfer and output retrieval | [podman_backend.py](src/patchbench/podman_backend.py), [remote guide](docs/remote-execution.md) |
 | Research Console | Inspect runs and construct commands; optional local execution | [frontend](frontend), [server.py](src/patchbench/server.py) |
 | Repository profiles | Source acquisition and compatible evaluator/solver images | [repositories/rucio.yaml](repositories/rucio.yaml), [images](images) |
 
@@ -223,7 +243,7 @@ reproduce that lockfile.
 
 | Workflow | Required environment |
 | --- | --- |
-| Synthetic cases and gold/dummy controls | Python 3.9+, Git; host execution |
+| Synthetic cases and gold/dummy controls | Python 3.10+, Git; host execution |
 | Claude Code on a synthetic case | Host Claude Code CLI and configured model provider |
 | Research Console | Node **22.13+ on the 22.x line, or 24+**, and npm |
 | Rucio construction / offline evaluation | Rootless Podman, source history, compatible evaluator/solver images |
@@ -250,8 +270,10 @@ Use a model identifier your provider accepts.
 
 For advanced API/gateway configuration, prepare a literal export file **outside
 the repository**, readable only by you. It is optional for host runs using allowed
-environment credentials, but **required for containerized Claude Code**, with an
-explicit nonempty credential; containers do not reuse your host subscription login.
+environment credentials. API-based containerized Claude Code requires this file
+with an explicit nonempty credential. Native container login is selected
+separately with `--agent-login-dir`; containers do not automatically reuse a
+normal host subscription/keychain login.
 
 ```bash
 export PROVIDER_ENV="$HOME/.config/patchbench/provider-env.sh"
@@ -369,6 +391,10 @@ For a collection, `run-all --cases-dir cases --case-type coding --agent claude-c
 accepts the same provider, turn/time-budget and container options. Batches run
 sequentially, preserve per-case outcomes and write their selection and summary
 under `artifacts/batches/<run-id>/`.
+Use `--live` for per-case progress and repeat `--case-id` to select a subset.
+Managed batches sharing one corpus are serialized by a workspace lock. Time and
+turn limits do not impose a hard monetary cap. The public profile does not bundle
+the private study's multi-model launcher, repetition scheduler or figure scripts.
 
 ### Larger collections and other repositories
 
@@ -391,6 +417,9 @@ Additional source repositories need manifests, compatible runtime recipes and
 construction support. Generic local coding cases can declare their own checkout
 and test command. Arbitrary GitHub URLs are not supported by the current Rucio
 intake; they need an implementation extension rather than a changed URL alone.
+The shared GitHub client also recognizes DIRAC and XRootD identities, but this
+public profile ships turnkey repository configuration and images only for Rucio.
+Additional upstreams need their own reviewed manifests and runtime assets.
 
 ## Evaluation and case formats
 
@@ -418,6 +447,14 @@ F2P means fail-to-pass; P2P means a regression remains passing. The small demos
 exercise the basic injected-test pipeline, not every stricter historical or mirror
 acceptance rule. New tests may establish validity without making a task realistic.
 
+During solver evaluation, the full submitted patch is applied first. Modified
+official test paths are restored and evaluator tests injected without removing
+unrelated model-added tests. Existing-tests mirrors restore their tracked oracle
+inputs. Frozen reference outcomes must remain satisfied; additional passing tests
+do not invalidate them. Patch capture compares against the original Base even if
+the agent commits, excludes new root Maven cache files, and fails explicitly above
+128 MiB rather than silently truncating a submission.
+
 ## Evidence, reports and comparisons
 
 For a corpus laid out like the examples, evidence is stored beside `cases/`:
@@ -441,6 +478,11 @@ artifacts/<case-id>/
 and `summary.json`. Scope PATH to the attempt or experiment you mean to report.
 The console links the patch, logs and execution stages and compares two to four
 runs. Missing token/cost observations remain unknown.
+Token accounting uses the final parent-session result when available, avoiding
+double-counting repeated streamed snapshots. CLI-reported costs are estimates;
+they do not establish provider billing. Optional `PATCHBENCH_PROMETHEUS_*`
+monitoring is a separate non-authoritative key/model-level estimate and remains
+disabled unless configured. It does not replace the recorded agent events.
 
 Freeze case selection, prompt mode, runtime, provider/model and budgets before
 comparing conditions. Keep attempt IDs and a declared retry-selection rule. Exclude
@@ -546,7 +588,7 @@ truth and included in a new sanitized export. The repositories are not mirrored.
 From the project root, run the portable backend suite:
 
 ```bash
-python -m pytest -q
+python -m pytest -q tests
 ```
 
 Frontend checks:

@@ -2,11 +2,11 @@
 from pathlib import Path
 import json
 from patchbench.exceptions import PatchbenchError
-from patchbench.gitutils import temporary_checkout, apply_patch
+from patchbench.gitutils import temporary_checkout, apply_patch, evaluation_test_patch
 from patchbench.io import write_json
 from patchbench.runner import run_command
 from .execution import execute
-from .reports import green, differential
+from .reports import green, differential, reference_tests_pass
 from .environment import environment_digest
 from .patches import check_changes, production_file
 
@@ -222,20 +222,37 @@ def evaluate_existing_patch(case, patch_path, run_dir):
         if not applied:
             return _PatchEvaluation(False, False, error, [], 0, 0)
         files, added, removed = diff_stats(checkout)
-        # Solver cannot weaken the oracle or alter build configuration either.
-        if any(not production_file(f, env.get('component_paths', [env['component_path']])) for f in files):
+        modules = env.get('component_paths', [env['component_path']])
+        test_roots = tuple(module.rstrip('/') + '/src/test/' for module in modules)
+        if 'lib/rucio' in modules:
+            test_roots += ('tests/',)
+        # Model tests are retained; build/environment changes are still rejected.
+        if any((checkout / f).is_symlink() or (not production_file(f, modules) and not f.startswith(test_roots)) for f in files):
             return _PatchEvaluation(True, False, 'forbidden_file_change', files, added, removed)
+        inventory = run_command(
+            ['git', 'ls-tree', '-r', '--name-only', '-z', case.base_commit, '--', *test_roots],
+            cwd=checkout,
+        )
+        if inventory.exit_code:
+            raise PatchbenchError('Could not identify frozen existing test inputs')
+        original_tests = set(inventory.stdout.split('\0'))
+        reset_files = tuple(sorted(original_tests.intersection(files)))
         oracle = raw['benchmark'].get('oracle_patch')
-        if oracle:
-            # Solver patch statistics/authority are checked before evaluator injection.
-            from .oracle import inject_oracle
-            run_command(['git', 'add', '--all'], cwd=checkout)
-            run_command(['git', '-c', 'user.name=PatchBench', '-c', 'user.email=patchbench@localhost',
-                         'commit', '--allow-empty', '-m', 'Solver candidate'], cwd=checkout)
-            inject_oracle(checkout, case.case_dir / oracle, env.get('component_paths', [env['component_path']]))
-        result = execute(checkout, env, run_dir)
-        (run_dir / 'test.log').write_text(result['output'])
-        baseline_path = case.case_dir / raw['benchmark']['baseline_record']
-        baseline = json.loads(baseline_path.read_text())
-        resolved = green(result) and result['report']['tests'] == baseline['report']['tests']
-        return _PatchEvaluation(True, resolved, None if resolved else 'existing_tests_not_restored', files, added, removed)
+        oracle_path = case.case_dir / oracle if oracle else None
+        if oracle_path:
+            from unidiff import PatchSet
+            from .oracle import test_path
+            patch = PatchSet(oracle_path.read_text())
+            if len(patch) != 1 or not patch[0].is_added_file or not test_path(patch[0].path, modules):
+                raise PatchbenchError('generated_test_invalid: oracle must add exactly one new test')
+        # Unlike developer-test cases, these cases use the tracked base tests
+        # themselves as oracle. Restore changed originals, retain new model tests.
+        with evaluation_test_patch(checkout, case.base_commit, oracle_path, reset_files=reset_files) as (applied, error):
+            if not applied:
+                return _PatchEvaluation(True, False, 'Failed to apply evaluation oracle: ' + str(error), files, added, removed)
+            result = execute(checkout, env, run_dir)
+            (run_dir / 'test.log').write_text(result['output'])
+            baseline_path = case.case_dir / raw['benchmark']['baseline_record']
+            baseline = json.loads(baseline_path.read_text())
+            resolved = reference_tests_pass(result, baseline['report']['tests'])
+            return _PatchEvaluation(True, resolved, None if resolved else 'existing_tests_not_restored', files, added, removed)

@@ -1,5 +1,6 @@
 """Exact historical developer-test construction; no models or source rewriting."""
 from pathlib import Path, PurePosixPath
+from fnmatch import fnmatchcase
 from datetime import datetime, timezone
 import hashlib
 import json
@@ -14,13 +15,14 @@ import yaml
 from patchbench.catalog import read_metadata
 from patchbench.case import load_case
 from patchbench.exceptions import PatchbenchError
-from patchbench.gitutils import temporary_checkout, apply_patch
+from patchbench.gitutils import temporary_checkout, apply_patch, evaluation_test_patch
 from patchbench.io import write_json
 from patchbench.models import ValidationResult
 from patchbench.runner import run_command
+from patchbench.podman_backend import podman_command
 from patchbench.mirroring.execution import execute
 from patchbench.mirroring.patches import production_file
-from patchbench.mirroring.reports import green, differential
+from patchbench.mirroring.reports import green, differential, reference_tests_pass
 from patchbench.repositories import load_repository
 
 MODE = 'historical_pr_tests_v1'
@@ -77,7 +79,7 @@ def historical_policy(repository, draft, profile=None):
 
 def check_provenance(manifest, provenance):
     source = manifest.config.get('source', {})
-    if manifest.id == 'rucio':
+    if source.get('type') == 'github' or manifest.id == 'rucio':
         matched = provenance.get('source') == 'github' and provenance.get('github_repo') == source.get('github_repo', 'rucio/rucio')
     else:
         matched = (provenance.get('source') == 'gitlab'
@@ -89,6 +91,10 @@ def check_provenance(manifest, provenance):
 
 
 def developer_test(name, policy=None):
+    if (policy or {}).get('framework') == 'cmake':
+        return (safe_path(name) and name.startswith(tuple(policy.get('test_roots', [])))
+                and (name.endswith(('Test.cc', 'Tests.cc', 'Test.cpp', 'Tests.cpp'))
+                     or name in policy.get('test_commands', {}) and name.endswith(('.sh', '.py', '.bats'))))
     if (policy or {}).get('framework') == 'maven':
         path = PurePosixPath(name)
         return (safe_path(name) and '/src/test/java/' in '/' + name
@@ -96,17 +102,21 @@ def developer_test(name, policy=None):
     roots = (policy or {}).get('test_roots', ['tests/', 'lib/rucio/tests/'])
     path = PurePosixPath(name)
     return (not path.is_absolute() and '..' not in path.parts and '\\' not in name
-            and name.startswith(tuple(roots))
-            and path.name.startswith('test_') and name.endswith('.py'))
+            and (name.startswith(tuple(roots)) or any(fnmatchcase(name, pattern)
+                 for pattern in (policy or {}).get('test_path_patterns', [])))
+            and path.name.startswith(tuple((policy or {}).get('test_prefixes', ['test_']))) and name.endswith('.py'))
 
 
 def test_side_file(name, policy=None):
     """Developer fixtures, helpers and dedicated pytest configuration are evaluator inputs."""
     path = PurePosixPath(name)
+    if (policy or {}).get('framework') == 'cmake':
+        return safe_path(name) and name.startswith(tuple(policy.get('test_roots', [])))
     if (policy or {}).get('framework') == 'maven':
         return safe_path(name) and any(root in '/' + name for root in ('/src/test/java/', '/src/test/resources/'))
     return (not path.is_absolute() and '..' not in path.parts and '\\' not in name
             and (name.startswith(tuple((policy or {}).get('test_roots', ['tests/', 'lib/rucio/tests/'])))
+                 or any(fnmatchcase(name, pattern) for pattern in (policy or {}).get('test_path_patterns', []))
                  or name in ('conftest.py', 'pytest.ini', '.pytest.ini')))
 
 
@@ -170,6 +180,15 @@ def historical_patches(source, base, fix, policy=None, *, require_tests=True):
 
 def historical_command(policy, nodes):
     """Run component pytest configuration from its declared working directory."""
+    if policy.get('framework') == 'cmake':
+        commands = policy.get('test_commands', {})
+        if (not nodes or len(nodes) != len(set(nodes)) or any(n not in commands for n in nodes)
+                or any(commands[n] != commands[nodes[0]] for n in nodes)):
+            raise PatchbenchError('CMake tests require explicitly configured files sharing one test command')
+        command = commands[nodes[0]]
+        if not isinstance(command, list) or not command or any(not isinstance(x, str) for x in command):
+            raise PatchbenchError('Invalid configured CMake test command')
+        return command, None
     workdir = policy.get('workdir')
     directories = policy.get('test_workdirs', {})
     if directories:
@@ -197,6 +216,8 @@ def policy_digest(policy):
 
 def targeted_pytest_policy(policy, checkout, nodes):
     """Remove only existing positional collection paths from configured addopts."""
+    if policy.get('framework') == 'cmake':
+        return policy
     _, workdir = historical_command(policy, nodes)
     directory = checkout / (workdir or '.')
     addopts = ''
@@ -317,7 +338,7 @@ def cache_identity(cache, checkout):
 
 def image_identity(image):
     try:
-        result = run_command(['podman', 'image', 'inspect', '--format', '{{.Id}}', image], cwd=Path.cwd(), timeout_seconds=30)
+        result = run_command(podman_command('image', 'inspect', '--format', '{{.Id}}', image), cwd=Path.cwd(), timeout_seconds=30)
     except OSError:
         return None
     return result.stdout.strip() if not result.exit_code else None
@@ -600,8 +621,10 @@ def evaluate_historical_patch(case, patch_path, run_dir, *, executor=execute):
             return _PatchEvaluation(False, False, 'Failed to apply agent patch: ' + str(error), [], 0, 0)
         files, added, removed = diff_stats(checkout)
         def allowed(name):
-            if not safe_path(name) or test_side_file(name, policy):
+            if not safe_path(name):
                 return False
+            if test_side_file(name, policy):
+                return name not in ('pytest.ini', '.pytest.ini')
             if policy.get('framework') == 'maven':
                 return any(root in '/' + name for root in ('/src/main/java/', '/src/main/resources/'))
             return (name.startswith(tuple(policy.get('production_roots', ['lib/rucio/'])))
@@ -611,13 +634,13 @@ def evaluate_historical_patch(case, patch_path, run_dir, *, executor=execute):
             return _PatchEvaluation(True, False, 'Agent patch changes protected test or environment inputs', files, added, removed)
         if hashlib.sha256(case.test_patch.read_bytes()).hexdigest() != settings['test_sha256']:
             raise PatchbenchError('Historical oracle identity changed')
-        applied, error = apply_patch(checkout, case.test_patch)
-        if not applied:
-            return _PatchEvaluation(True, False, 'Failed to apply hidden developer tests: ' + str(error), files, added, removed)
-        tracked = {p:file_identity(checkout, p) for p in set(files) | set(settings.get('test_side_files', []))}
-        result = executor(checkout, environment, run_dir / 'historical-evaluation')
-        if {p:file_identity(checkout, p) for p in tracked} != tracked:
-            result['report']['invalid_reports'].append('evaluator_modified_source_or_oracle_inputs')
-        resolved = green(result) and result['report']['tests'] == baseline['reference_tests']
-        (run_dir / 'test.log').write_text((run_dir / 'historical-evaluation/execution.log').read_text())
-        return _PatchEvaluation(True, resolved, None if resolved else 'Historical behavioral or regression tests failed', files, added, removed)
+        with evaluation_test_patch(checkout, case.base_commit, case.test_patch) as (applied, error):
+            if not applied:
+                return _PatchEvaluation(True, False, 'Failed to apply hidden developer tests: ' + str(error), files, added, removed)
+            tracked = {p:file_identity(checkout, p) for p in set(files) | set(settings.get('test_side_files', []))}
+            result = executor(checkout, environment, run_dir / 'historical-evaluation')
+            if {p:file_identity(checkout, p) for p in tracked} != tracked:
+                result['report']['invalid_reports'].append('evaluator_modified_source_or_oracle_inputs')
+            resolved = reference_tests_pass(result, baseline['reference_tests'])
+            (run_dir / 'test.log').write_text((run_dir / 'historical-evaluation/execution.log').read_text())
+            return _PatchEvaluation(True, resolved, None if resolved else 'Historical behavioral or regression tests failed', files, added, removed)

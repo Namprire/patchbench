@@ -1,4 +1,4 @@
-"""Read-only public GitHub acquisition for the Rucio pilot."""
+"""Read-only public GitHub acquisition for explicitly supported repositories."""
 from __future__ import annotations
 import json
 import os
@@ -7,6 +7,8 @@ from urllib.request import Request, urlopen
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
 from patchbench.exceptions import PatchbenchError
+
+GITHUB_REPOSITORIES = {'rucio': 'rucio/rucio', 'dirac': 'DIRACGrid/DIRAC', 'xrootd': 'xrootd/xrootd'}
 
 
 class GitHubClient:
@@ -30,8 +32,8 @@ class GitHubClient:
             raise PatchbenchError('GitHub read failed: ' + self.redact(str(exc))) from exc
 
     def fetch_pull_request(self, repository, number):
-        if repository != 'rucio/rucio' or type(number) is not int or number <= 0:
-            raise PatchbenchError('This pilot accepts only positive rucio/rucio PR numbers')
+        if repository not in GITHUB_REPOSITORIES.values() or type(number) is not int or number <= 0:
+            raise PatchbenchError('GitHub import requires a supported repository and positive PR number')
         pr = self.get(f'repos/{repository}/pulls/{number}')
         if not isinstance(pr, dict) or pr.get('number') != number or not pr.get('merged_at') or pr.get('state') != 'closed':
             raise PatchbenchError('Only merged pull requests can be imported')
@@ -74,7 +76,7 @@ class GitHubClient:
         pr['related_issues'] = []
         text = (pr.get('title') or '') + '\n' + (pr.get('body') or '')
         references = set(re.findall(r'(?<![\w/])#(\d+)\b', text))
-        references.update(re.findall(r'https://github\.com/rucio/rucio/issues/(\d+)\b', text))
+        references.update(re.findall(r'https://github\.com/' + re.escape(repository) + r'/issues/(\d+)\b', text))
         for issue_number in sorted(map(int, references)):
             if issue_number == number:
                 continue
@@ -85,8 +87,8 @@ class GitHubClient:
         return pr
 
     def list_merged_pull_requests(self, repository, limit, labels=None):
-        if repository != 'rucio/rucio' or type(limit) is not int or not 1 <= limit <= 1000:
-            raise PatchbenchError('GitHub discovery supports rucio/rucio and limits 1–1000')
+        if repository not in GITHUB_REPOSITORIES.values() or type(limit) is not int or not 1 <= limit <= 1000:
+            raise PatchbenchError('GitHub discovery requires a supported repository and limits 1–1000')
         query = f'repo:{repository} is:pr is:merged'
         for label in labels or []:
             query += ' label:' + json.dumps(label)
